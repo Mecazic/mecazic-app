@@ -33,20 +33,27 @@ export default function Calendar() {
         const weekEnd = new Date(currentWeekStart);
         weekEnd.setDate(weekEnd.getDate() + 6);
 
-        const { data, error } = await supabase
-            .from('reservations')
-            .select('*, groups(name, color)')
-            .gte('date', formatDate(currentWeekStart))
-            .lte('date', formatDate(weekEnd))
-            .order('start_time');
+        try {
+            const { data, error } = await supabase
+                .from('reservations')
+                .select('*, groups(name, color)')
+                .gte('date', formatDate(currentWeekStart))
+                .lte('date', formatDate(weekEnd))
+                .order('start_time');
 
-        if (error) {
-            setFetchError(error.message);
-        } else {
-            setFetchError(null);
-            setReservations(data || []);
+            if (error) {
+                setFetchError(error.message);
+                console.error("Error fetching reservations:", error);
+            } else {
+                setFetchError(null);
+                setReservations(data || []);
+            }
+        } catch (err) {
+            console.error("Exception in fetchReservations:", err);
+            setFetchError("Erreur de chargement");
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     }, [currentWeekStart]);
 
     useEffect(() => {

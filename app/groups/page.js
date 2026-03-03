@@ -42,51 +42,61 @@ export default function GroupsPage() {
         if (user) {
             fetchData();
         }
-    }, [user, groups]);
+    }, [user]);
 
     const fetchData = async () => {
         setLoading(true);
 
-        const { data: groupMembersData } = await supabase
-            .from('group_members')
-            .select('group_id, role, profiles(id, username)');
+        try {
+            const { data: groupMembersData, error: gmError } = await supabase
+                .from('group_members')
+                .select('group_id, role, profiles(id, username)');
 
-        const members = {};
-        (groupMembersData || []).forEach(gm => {
-            if (!members[gm.group_id]) members[gm.group_id] = [];
-            if (gm.profiles) members[gm.group_id].push(gm.profiles);
-        });
-        setGroupMembers(members);
+            if (gmError) console.error("Error fetching group members:", gmError);
 
-        const today = new Date().toISOString().split('T')[0];
-        const { data: reservations } = await supabase
-            .from('reservations')
-            .select('*, groups(name, color)')
-            .gte('date', today)
-            .order('date')
-            .order('start_time')
-            .limit(50);
+            const members = {};
+            (groupMembersData || []).forEach(gm => {
+                if (!members[gm.group_id]) members[gm.group_id] = [];
+                if (gm.profiles) members[gm.group_id].push(gm.profiles);
+            });
+            setGroupMembers(members);
 
-        const resMap = {};
-        (reservations || []).forEach(r => {
-            if (!resMap[r.group_id]) resMap[r.group_id] = [];
-            resMap[r.group_id].push(r);
-        });
-        setGroupReservations(resMap);
+            const today = new Date().toISOString().split('T')[0];
+            const { data: reservations, error: resError } = await supabase
+                .from('reservations')
+                .select('*, groups(name, color)')
+                .gte('date', today)
+                .order('date')
+                .order('start_time')
+                .limit(50);
 
-        const { data: repertoire } = await supabase
-            .from('group_repertoire')
-            .select('*')
-            .order('title');
+            if (resError) console.error("Error fetching reservations:", resError);
 
-        const repMap = {};
-        (repertoire || []).forEach(r => {
-            if (!repMap[r.group_id]) repMap[r.group_id] = [];
-            repMap[r.group_id].push(r);
-        });
-        setGroupRepertoire(repMap);
+            const resMap = {};
+            (reservations || []).forEach(r => {
+                if (!resMap[r.group_id]) resMap[r.group_id] = [];
+                resMap[r.group_id].push(r);
+            });
+            setGroupReservations(resMap);
 
-        setLoading(false);
+            const { data: repertoire, error: repError } = await supabase
+                .from('group_repertoire')
+                .select('*')
+                .order('title');
+
+            if (repError) console.error("Error fetching repertoire:", repError);
+
+            const repMap = {};
+            (repertoire || []).forEach(r => {
+                if (!repMap[r.group_id]) repMap[r.group_id] = [];
+                repMap[r.group_id].push(r);
+            });
+            setGroupRepertoire(repMap);
+        } catch (err) {
+            console.error("Error in fetchData:", err);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleCreateGroup = async () => {

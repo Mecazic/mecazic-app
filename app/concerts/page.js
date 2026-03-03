@@ -25,27 +25,35 @@ export default function ConcertsPage() {
     const fetchConcerts = async () => {
         setLoading(true);
 
-        const { data: concertsData } = await supabase
-            .from('concerts')
-            .select('*')
-            .order('date', { ascending: false });
+        try {
+            const { data: concertsData, error: concertError } = await supabase
+                .from('concerts')
+                .select('*')
+                .order('date', { ascending: false });
 
-        setConcerts(concertsData || []);
+            if (concertError) console.error("Error fetching concerts:", concertError);
 
-        // Fetch sets for all concerts
-        const { data: setsData } = await supabase
-            .from('concert_sets')
-            .select('*, groups(name, color)')
-            .order('set_order');
+            setConcerts(concertsData || []);
 
-        const setsMap = {};
-        (setsData || []).forEach(s => {
-            if (!setsMap[s.concert_id]) setsMap[s.concert_id] = [];
-            setsMap[s.concert_id].push(s);
-        });
-        setConcertSets(setsMap);
+            // Fetch sets for all concerts
+            const { data: setsData, error: setsError } = await supabase
+                .from('concert_sets')
+                .select('*, groups(name, color)')
+                .order('set_order');
 
-        setLoading(false);
+            if (setsError) console.error("Error fetching sets:", setsError);
+
+            const setsMap = {};
+            (setsData || []).forEach(s => {
+                if (!setsMap[s.concert_id]) setsMap[s.concert_id] = [];
+                setsMap[s.concert_id].push(s);
+            });
+            setConcertSets(setsMap);
+        } catch (err) {
+            console.error("Exception in fetchConcerts:", err);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleDelete = async (concertId) => {
