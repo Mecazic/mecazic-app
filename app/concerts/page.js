@@ -58,9 +58,19 @@ export default function ConcertsPage() {
 
     const handleDelete = async (concertId) => {
         if (!confirm('Supprimer ce concert et tous ses passages ?')) return;
-        await supabase.from('concerts').delete().eq('id', concertId);
-        fetchConcerts();
-        if (selectedConcert?.id === concertId) setSelectedConcert(null);
+        try {
+            const { error } = await supabase.from('concerts').delete().eq('id', concertId);
+            if (error) {
+                console.error('Erreur suppression concert:', error);
+                alert('Erreur lors de la suppression du concert : ' + error.message);
+                return;
+            }
+            if (selectedConcert?.id === concertId) setSelectedConcert(null);
+            fetchConcerts();
+        } catch (err) {
+            console.error('Exception handleDelete concert:', err);
+            alert('Erreur inattendue lors de la suppression du concert.');
+        }
     };
 
     if (authLoading) {

@@ -55,15 +55,35 @@ export default function ConcertDetail({ concert, onBack, onRefresh, groups, user
 
     const handleDeleteSet = async (setId) => {
         if (!confirm('Supprimer ce passage et toutes ses chansons ?')) return;
-        await supabase.from('concert_sets').delete().eq('id', setId);
-        fetchSets();
-        onRefresh();
+        try {
+            const { error } = await supabase.from('concert_sets').delete().eq('id', setId);
+            if (error) {
+                console.error('Erreur suppression set:', error);
+                alert('Erreur lors de la suppression du passage : ' + error.message);
+                return;
+            }
+            fetchSets();
+            onRefresh();
+        } catch (err) {
+            console.error('Exception handleDeleteSet:', err);
+            alert('Erreur inattendue lors de la suppression du passage.');
+        }
     };
 
     const handleDeleteSong = async (songId) => {
         if (!confirm('Supprimer cette chanson ?')) return;
-        await supabase.from('set_songs').delete().eq('id', songId);
-        fetchSets();
+        try {
+            const { error } = await supabase.from('set_songs').delete().eq('id', songId);
+            if (error) {
+                console.error('Erreur suppression chanson:', error);
+                alert('Erreur lors de la suppression de la chanson : ' + error.message);
+                return;
+            }
+            fetchSets();
+        } catch (err) {
+            console.error('Exception handleDeleteSong:', err);
+            alert('Erreur inattendue lors de la suppression de la chanson.');
+        }
     };
 
     const handleMoveSet = async (setId, direction) => {

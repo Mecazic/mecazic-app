@@ -150,28 +150,44 @@ export default function GroupsPage() {
 
     const handleJoinGroup = async (groupId) => {
         try {
-            await supabase
+            const { error: joinError } = await supabase
                 .from('group_members')
                 .insert({ user_id: user.id, group_id: groupId, role: 'member' });
 
+            if (joinError) {
+                console.error('Erreur lors de la jonction:', joinError);
+                alert('Erreur lors de la jonction au groupe : ' + joinError.message);
+                return;
+            }
+
+            // Legacy field update — non-blocking
             await supabase
                 .from('profiles')
                 .update({ group_id: groupId })
                 .eq('id', user.id);
+
             await fetchProfile(user.id);
+            await fetchGroups();
             await fetchData();
         } catch (err) {
-            console.error(err);
+            console.error('Exception handleJoinGroup:', err);
+            alert('Erreur inattendue lors de la jonction au groupe.');
         }
     };
 
     const handleLeaveGroup = async (groupId) => {
         try {
-            await supabase
+            const { error: leaveError } = await supabase
                 .from('group_members')
                 .delete()
                 .eq('user_id', user.id)
                 .eq('group_id', groupId);
+
+            if (leaveError) {
+                console.error('Erreur leave group:', leaveError);
+                alert('Erreur en quittant le groupe : ' + leaveError.message);
+                return;
+            }
 
             if (profile?.group_id === groupId) {
                 await supabase
@@ -180,9 +196,11 @@ export default function GroupsPage() {
                     .eq('id', user.id);
             }
             await fetchProfile(user.id);
+            await fetchGroups();
             await fetchData();
         } catch (err) {
-            console.error(err);
+            console.error('Exception handleLeaveGroup:', err);
+            alert('Erreur inattendue en quittant le groupe.');
         }
     };
 
@@ -191,15 +209,19 @@ export default function GroupsPage() {
 
         try {
             const { error } = await supabase.from('groups').delete().eq('id', groupId);
-            if (error) throw error;
+            if (error) {
+                console.error('Erreur suppression groupe:', error);
+                alert('Erreur lors de la suppression du groupe : ' + error.message);
+                return;
+            }
 
+            if (selectedGroup?.id === groupId) setSelectedGroup(null);
             await fetchProfile(user.id);
             await fetchGroups();
             await fetchData();
-            if (selectedGroup?.id === groupId) setSelectedGroup(null);
         } catch (err) {
-            console.error("Erreur suppression groupe:", err);
-            alert("Erreur lors de la suppression du groupe.");
+            console.error('Exception handleDeleteGroup:', err);
+            alert('Erreur inattendue lors de la suppression du groupe.');
         }
     };
 

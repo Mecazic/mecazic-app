@@ -31,12 +31,19 @@ export function AuthProvider({ children }) {
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
             async (event, session) => {
-                if (session?.user) {
-                    setUser(session.user);
-                    await fetchProfile(session.user.id);
-                } else {
-                    setUser(null);
-                    setProfile(null);
+                try {
+                    if (session?.user) {
+                        setUser(session.user);
+                        // Only re-fetch profile on sign-in or if user changed, not on TOKEN_REFRESHED
+                        if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+                            await fetchProfile(session.user.id);
+                        }
+                    } else {
+                        setUser(null);
+                        setProfile(null);
+                    }
+                } catch (err) {
+                    console.error("Erreur dans onAuthStateChange:", err);
                 }
             }
         );
