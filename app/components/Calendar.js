@@ -209,6 +209,11 @@ export default function Calendar() {
                                         cursor: past ? 'default' : 'pointer',
                                     }}
                                 >
+                                    {isToday(day) && hour === new Date().getHours() && (
+                                        <div className="now-line" style={{ top: `${new Date().getMinutes()}px` }}>
+                                            <span className="now-line-dot"></span>
+                                        </div>
+                                    )}
                                     {cellReservations.map((r) => (
                                         isReservationStart(r, hour) && (
                                             <div

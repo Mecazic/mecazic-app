@@ -1981,3 +1981,648 @@ h4 {
     right: var(--space-sm);
   }
 }
+/* ========================================
+   PHASE 1 - REDESIGN (topbar, page groupe,
+   avatars, panels, polish)
+   ======================================== */
+
+/* ---------- Topbar ---------- */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+  margin-bottom: var(--space-xl);
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  padding: var(--space-sm) 0;
+  background: linear-gradient(to bottom, var(--bg-primary) 75%, transparent);
+}
+
+.topbar-search {
+  position: relative;
+  flex: 1;
+  max-width: 520px;
+}
+
+.topbar-search input {
+  width: 100%;
+  padding: 10px 16px 10px 42px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full);
+  color: var(--text-primary);
+  font-size: 0.92rem;
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.topbar-search input::placeholder {
+  color: var(--text-muted);
+}
+
+.topbar-search input:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.topbar-search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-54%);
+  color: var(--text-muted);
+  font-size: 1.15rem;
+  pointer-events: none;
+}
+
+.topbar-user {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+
+.search-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color-hover);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  max-height: 420px;
+  overflow-y: auto;
+  z-index: 200;
+}
+
+.search-section {
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.search-section:last-child {
+  border-bottom: none;
+}
+
+.search-section-label {
+  padding: 4px var(--space-md);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.search-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px var(--space-md);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.search-row:hover {
+  background: var(--bg-card-hover);
+}
+
+.search-row-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.search-row-icon {
+  font-size: 0.9rem;
+}
+
+.search-row-title {
+  font-weight: 600;
+  font-size: 0.92rem;
+  white-space: nowrap;
+}
+
+.search-row-sub {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search-empty {
+  padding: var(--space-md);
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* ---------- Avatars ---------- */
+
+.avatar {
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: white;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  user-select: none;
+}
+
+.avatar-stack {
+  display: flex;
+  align-items: center;
+  margin-top: var(--space-md);
+}
+
+.avatar-stack .avatar {
+  margin-right: -8px;
+  border: 2px solid var(--bg-primary);
+  transition: transform var(--transition-fast);
+}
+
+.avatar-stack .avatar:hover {
+  transform: translateY(-3px);
+  z-index: 2;
+}
+
+.avatar-stack-more {
+  margin-left: 16px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+/* ---------- Sidebar : prochains concerts ---------- */
+
+.sidebar-upcoming {
+  margin-top: auto;
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--border-color);
+  margin-bottom: var(--space-md);
+}
+
+.sidebar-section-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-bottom: var(--space-sm);
+  padding: 0 var(--space-sm);
+}
+
+.sidebar-concert-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px var(--space-sm);
+  border-radius: var(--radius-md);
+  transition: background var(--transition-fast);
+}
+
+.sidebar-concert-row:hover {
+  background: var(--bg-card-hover);
+}
+
+.sidebar-concert-date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 40px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color-hover);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.sidebar-concert-day {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1.1;
+}
+
+.sidebar-concert-month {
+  font-size: 0.55rem;
+  font-weight: 700;
+  color: var(--accent-primary-light);
+  letter-spacing: 0.06em;
+}
+
+.sidebar-concert-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sidebar-concert-name {
+  font-size: 0.84rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-concert-loc {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* La sidebar garde le bloc user en bas */
+.sidebar-nav {
+  flex: 0 0 auto;
+}
+
+/* ---------- Page groupe : hero ---------- */
+
+.group-hero {
+  position: relative;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  margin-bottom: var(--space-xl);
+  background: var(--bg-card);
+}
+
+.group-hero-banner {
+  height: 120px;
+}
+
+.group-hero-content {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-lg);
+  padding: 0 var(--space-xl) var(--space-xl);
+  margin-top: -44px;
+  flex-wrap: wrap;
+}
+
+.group-hero-icon {
+  width: 88px;
+  height: 88px;
+  border-radius: var(--radius-lg);
+  border: 1px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.4rem;
+  backdrop-filter: blur(12px);
+  background-clip: padding-box;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-md);
+}
+
+.group-hero-text {
+  flex: 1;
+  min-width: 240px;
+}
+
+.group-hero-title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.group-hero-title-row h1 {
+  font-size: 2.1rem;
+}
+
+.group-hero-meta {
+  display: flex;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  margin-top: 4px;
+}
+
+.group-hero-actions {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+/* ---------- Grille de page et panels ---------- */
+
+.page-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--space-lg);
+  align-items: start;
+}
+
+.page-grid-main,
+.page-grid-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  min-width: 0;
+}
+
+@media (max-width: 1024px) {
+  .page-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-md);
+}
+
+.panel-header h2 {
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.panel-count {
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color-hover);
+  color: var(--text-secondary);
+  border-radius: var(--radius-full);
+  padding: 1px 9px;
+}
+
+.panel-empty {
+  font-size: 0.9rem;
+  font-style: italic;
+  padding: var(--space-md) 0;
+}
+
+/* ---------- Réservations (page groupe) ---------- */
+
+.res-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.res-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: 10px var(--space-md);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  transition: border-color var(--transition-fast);
+}
+
+.res-row:hover {
+  border-color: var(--border-color-hover);
+}
+
+.res-date-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 48px;
+  background: var(--bg-card);
+  border: 1px solid;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.res-date-day {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  line-height: 1.1;
+}
+
+.res-date-month {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+}
+
+.res-row-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.res-row-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.res-row-sub {
+  color: var(--text-muted);
+  font-size: 0.84rem;
+}
+
+/* ---------- Table répertoire ---------- */
+
+.repertoire-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.repertoire-table th {
+  text-align: left;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-color-hover);
+}
+
+.repertoire-table td {
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.92rem;
+}
+
+.repertoire-table tbody tr {
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.repertoire-table tbody tr:hover {
+  background: var(--bg-card-hover);
+}
+
+.repertoire-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.repertoire-title {
+  font-weight: 600;
+}
+
+.repertoire-links {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.repertoire-links a {
+  opacity: 0.75;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+.repertoire-links a:hover {
+  opacity: 1;
+  transform: scale(1.15);
+}
+
+/* ---------- Membres (page groupe) ---------- */
+
+.member-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.member-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  transition: background var(--transition-fast);
+}
+
+.member-row:hover {
+  background: var(--bg-card-hover);
+}
+
+.member-name {
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.member-badge {
+  margin-left: auto;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent-primary-light);
+  background: var(--accent-glow);
+  border-radius: var(--radius-full);
+  padding: 2px 10px;
+}
+
+/* ---------- Calendrier : indicateur maintenant ---------- */
+
+.calendar-cell {
+  position: relative;
+}
+
+.now-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent-danger);
+  z-index: 3;
+  pointer-events: none;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.6);
+}
+
+.now-line-dot {
+  position: absolute;
+  left: -3px;
+  top: -3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-danger);
+}
+
+/* ---------- Polish global ---------- */
+
+.modal-overlay {
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.group-card:hover,
+.concert-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+
+.group-card,
+.concert-card {
+  transition: transform var(--transition-base), box-shadow var(--transition-base),
+    background var(--transition-base), border-color var(--transition-base);
+}
+
+.reservation-block {
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.reservation-block:hover {
+  filter: brightness(1.12);
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+@media (max-width: 768px) {
+  .topbar {
+    position: static;
+    margin-bottom: var(--space-md);
+  }
+
+  .group-hero-content {
+    padding: 0 var(--space-md) var(--space-md);
+  }
+
+  .group-hero-actions {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .repertoire-table th:nth-child(3),
+  .repertoire-table td:nth-child(3) {
+    display: none;
+  }
+}
+
+/* Bloc user toujours en bas, avec ou sans section concerts */
+.sidebar-user {
+  margin-top: auto;
+}
+
+.sidebar-upcoming + .sidebar-user {
+  margin-top: 0;
+}

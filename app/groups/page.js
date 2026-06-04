@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/app/contexts/AuthContext';
-import Sidebar from '@/app/components/Sidebar';
+import AppShell from '@/app/components/AppShell';
 import LoginPage from '@/app/login/LoginPage';
-import GroupDetailsModal from '@/app/components/GroupDetailsModal';
 
 const GROUP_COLORS = [
     { color: '#8B5CF6', label: 'Violet' },
@@ -19,10 +19,10 @@ const GROUP_COLORS = [
 ];
 
 export default function GroupsPage() {
+    const router = useRouter();
     const { user, profile, groups, loading: authLoading, fetchGroups, fetchProfile } = useAuth();
     const [groupMembers, setGroupMembers] = useState({});
     const [groupReservations, setGroupReservations] = useState({});
-    const [groupRepertoire, setGroupRepertoire] = useState({});
     const [loading, setLoading] = useState(true);
     const isAdmin = profile?.role === 'admin';
 
@@ -34,9 +34,6 @@ export default function GroupsPage() {
     const [creatingGroup, setCreatingGroup] = useState(false);
     const [createError, setCreateError] = useState('');
     const [createSuccess, setCreateSuccess] = useState('');
-
-    // Group details modal state
-    const [selectedGroup, setSelectedGroup] = useState(null);
 
     useEffect(() => {
         if (user) {
@@ -78,20 +75,6 @@ export default function GroupsPage() {
                 resMap[r.group_id].push(r);
             });
             setGroupReservations(resMap);
-
-            const { data: repertoire, error: repError } = await supabase
-                .from('group_repertoire')
-                .select('*')
-                .order('title');
-
-            if (repError) console.error("Error fetching repertoire:", repError);
-
-            const repMap = {};
-            (repertoire || []).forEach(r => {
-                if (!repMap[r.group_id]) repMap[r.group_id] = [];
-                repMap[r.group_id].push(r);
-            });
-            setGroupRepertoire(repMap);
         } catch (err) {
             console.error("Error in fetchData:", err);
         } finally {
@@ -220,7 +203,6 @@ export default function GroupsPage() {
                 return;
             }
 
-            if (selectedGroup?.id === groupId) setSelectedGroup(null);
             await fetchProfile(user.id);
             await fetchGroups();
             await fetchData();
@@ -256,9 +238,7 @@ export default function GroupsPage() {
     };
 
     return (
-        <div className="app-layout">
-            <Sidebar />
-            <main className="main-content">
+        <AppShell>
                 <div className="page-header">
                     <h1>
                         <span className="page-header-icon">🎸</span>
@@ -397,7 +377,7 @@ export default function GroupsPage() {
                                     key={group.id}
                                     className="group-card"
                                     style={{ '--group-color': group.color, cursor: 'pointer' }}
-                                    onClick={() => setSelectedGroup(group)}
+                                    onClick={() => router.push(`/groups/${group.id}`)}
                                 >
                                     <div className="group-card-header">
                                         <div
@@ -481,21 +461,6 @@ export default function GroupsPage() {
                     </div>
                 )}
 
-                {/* Group Details Modal */}
-                {selectedGroup && (
-                    <GroupDetailsModal
-                        group={selectedGroup}
-                        members={groupMembers[selectedGroup.id] || []}
-                        reservations={groupReservations[selectedGroup.id] || []}
-                        repertoire={groupRepertoire[selectedGroup.id] || []}
-                        isMyGroup={profile?.groups?.some(g => g.id === selectedGroup.id)}
-                        onJoin={handleJoinGroup}
-                        onLeave={() => handleLeaveGroup(selectedGroup.id)}
-                        onClose={() => setSelectedGroup(null)}
-                        onRepertoireChange={fetchData}
-                    />
-                )}
-            </main>
-        </div>
+        </AppShell>
     );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from './contexts/AuthContext';
-import Sidebar from './components/Sidebar';
+import AppShell from './components/AppShell';
 import Calendar from './components/Calendar';
 import LoginPage from './login/LoginPage';
 
@@ -22,11 +22,8 @@ export default function Home() {
   }
 
   return (
-    <div className="app-layout">
-      <Sidebar />
-      <main className="main-content">
-        <Calendar />
-      </main>
-    </div>
+    <AppShell>
+      <Calendar />
+    </AppShell>
   );
 }

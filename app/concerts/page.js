@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/app/contexts/AuthContext';
-import Sidebar from '@/app/components/Sidebar';
+import AppShell from '@/app/components/AppShell';
 import LoginPage from '@/app/login/LoginPage';
 import ConcertDetail from '@/app/components/ConcertDetail';
 import ConcertModal from '@/app/components/ConcertModal';
@@ -104,9 +104,7 @@ export default function ConcertsPage() {
     const pastConcerts = concerts.filter(c => !isUpcoming(c.date));
 
     return (
-        <div className="app-layout">
-            <Sidebar />
-            <main className="main-content">
+        <AppShell>
                 {selectedConcert ? (
                     <ConcertDetail
                         concert={selectedConcert}
@@ -282,7 +280,6 @@ export default function ConcertsPage() {
                         userId={user.id}
                     />
                 )}
-            </main>
-        </div>
+        </AppShell>
     );
 }
