@@ -9,7 +9,7 @@ export default function ReservationDetail({ reservation, onClose, onDeleted }) {
     const [loading, setLoading] = useState(false);
 
     const isAdmin = profile?.role === 'admin';
-    const canDelete = isAdmin;
+    const canDelete = isAdmin || user?.id === reservation.user_id;
 
     const handleDelete = async () => {
         if (!confirm('Supprimer cette réservation ?')) return;

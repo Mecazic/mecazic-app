@@ -49,7 +49,9 @@ export default function Sidebar() {
                         <div className="sidebar-user-info">
                             <div className="sidebar-user-name">{profile.username}</div>
                             <div className="sidebar-user-group">
-                                {profile.groups?.name || 'Pas de groupe'}
+                                {profile.groups?.length > 0
+                                    ? profile.groups.map(g => g.name).join(', ')
+                                    : 'Pas de groupe'}
                             </div>
                         </div>
                         <button

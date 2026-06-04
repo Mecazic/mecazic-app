@@ -132,6 +132,7 @@ export default function GroupsPage() {
             }
 
             await fetchGroups();
+            await fetchData();
             setShowCreateGroup(false);
             setNewGroupName('');
             setNewGroupDesc('');
@@ -155,6 +156,10 @@ export default function GroupsPage() {
                 .insert({ user_id: user.id, group_id: groupId, role: 'member' });
 
             if (joinError) {
+                if (joinError.code === '23505') {
+                    // Already a member, ignore
+                    return;
+                }
                 console.error('Erreur lors de la jonction:', joinError);
                 alert('Erreur lors de la jonction au groupe : ' + joinError.message);
                 return;

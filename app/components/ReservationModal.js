@@ -14,9 +14,12 @@ export default function ReservationModal({ slot, onClose, onCreated }) {
         profile?.groups?.length > 0 ? profile.groups[0].id : ''
     );
 
+    // Prochain créneau plein : la date ET l'heure viennent du même objet,
+    // sinon à 23h le défaut devient 00:00 du même jour (dans le passé)
     const [customDate, setCustomDate] = useState(() => {
         if (slot) return slot.date;
         const d = new Date();
+        d.setHours(d.getHours() + 1);
         const year = d.getFullYear();
         const month = String(d.getMonth() + 1).padStart(2, '0');
         const day = String(d.getDate()).padStart(2, '0');
@@ -119,7 +122,12 @@ export default function ReservationModal({ slot, onClose, onCreated }) {
 
             onCreated();
         } catch (err) {
-            setError(err.message);
+            if (err.code === '23P01') {
+                // Contrainte anti-chevauchement de la base (race condition)
+                setError('⚠️ Ce créneau vient d\'être réservé par quelqu\'un d\'autre.');
+            } else {
+                setError(err.message);
+            }
         } finally {
             setLoading(false);
         }

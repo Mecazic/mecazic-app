@@ -26,8 +26,12 @@ export default function LoginPage() {
                     setLoading(false);
                     return;
                 }
-                await signUp(email, password, username, null);
-                setSuccess('🎉 Compte créé ! Tu es connecté.');
+                const data = await signUp(email, password, username, null);
+                if (data?.session) {
+                    setSuccess('🎉 Compte créé ! Tu es connecté.');
+                } else {
+                    setSuccess('📬 Compte créé ! Vérifie ta boîte mail pour confirmer ton inscription.');
+                }
             } else {
                 await signIn(email, password);
             }
@@ -36,6 +40,8 @@ export default function LoginPage() {
                 setError('Email ou mot de passe incorrect.');
             } else if (err.message.includes('already registered')) {
                 setError('Cet email est déjà utilisé.');
+            } else if (err.message.includes('Email not confirmed')) {
+                setError('Confirme ton email avant de te connecter (regarde ta boîte mail).');
             } else {
                 setError(err.message);
             }

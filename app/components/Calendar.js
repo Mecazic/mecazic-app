@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { Fragment, useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/app/contexts/AuthContext';
 import ReservationModal from './ReservationModal';
@@ -36,7 +36,7 @@ export default function Calendar() {
         try {
             const { data, error } = await supabase
                 .from('reservations')
-                .select('*, groups(name, color)')
+                .select('*, groups(name, color), profiles(username)')
                 .gte('date', formatDate(currentWeekStart))
                 .lte('date', formatDate(weekEnd))
                 .order('start_time');
@@ -191,8 +191,8 @@ export default function Calendar() {
 
                 {/* Time rows */}
                 {hours.map((hour) => (
-                    <>
-                        <div key={`time-${hour}`} className="calendar-time-label">
+                    <Fragment key={hour}>
+                        <div className="calendar-time-label">
                             {String(hour).padStart(2, '0')}:00
                         </div>
                         {days.map((day, dayIdx) => {
@@ -236,7 +236,7 @@ export default function Calendar() {
                                 </div>
                             );
                         })}
-                    </>
+                    </Fragment>
                 ))}
             </div>
 

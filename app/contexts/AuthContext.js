@@ -54,49 +54,72 @@ export function AuthProvider({ children }) {
     }, []);
 
     const fetchProfile = async (userId) => {
-        let { data, error } = await supabase
-            .from('profiles')
-            .select(`
-                *,
-                group_members(group_id, role, groups(*))
-            `)
-            .eq('id', userId)
-            .single();
+        try {
+            // First try to fetch just the basic profile
+            let { data: profileData, error: profileError } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', userId)
+                .single();
 
-        // If profile doesn't exist, create it automatically
-        if (!data || (error && error.code === 'PGRST116')) {
-            const { data: authData } = await supabase.auth.getUser();
-            const authUser = authData?.user;
+            // If profile doesn't exist, create it automatically
+            if (!profileData || (profileError && profileError.code === 'PGRST116')) {
+                const { data: authData } = await supabase.auth.getUser();
+                const authUser = authData?.user;
 
-            if (authUser && authUser.id === userId) {
-                const { data: newProfile, error: insertError } = await supabase
-                    .from('profiles')
-                    .insert({
-                        id: authUser.id,
-                        username: authUser.user_metadata?.username || authUser.email?.split('@')[0] || 'Utilisateur',
-                        email: authUser.email || '',
-                    })
-                    .select(`
-                        *,
-                        group_members(group_id, role, groups(*))
-                    `)
-                    .single();
+                if (authUser && authUser.id === userId) {
+                    const { data: newProfile, error: insertError } = await supabase
+                        .from('profiles')
+                        .insert({
+                            id: authUser.id,
+                            username: authUser.user_metadata?.username || authUser.email?.split('@')[0] || 'Utilisateur',
+                            email: authUser.email || '',
+                        })
+                        .select()
+                        .single();
 
-                if (!insertError && newProfile) {
-                    data = newProfile;
+                    if (!insertError && newProfile) {
+                        profileData = newProfile;
+                    } else {
+                        throw insertError || new Error("Failed to auto-create profile");
+                    }
                 } else {
-                    console.error("Failed to auto-create profile:", insertError);
+                    setProfile(null);
+                    return;
+                }
+            } else if (profileError) {
+                throw profileError;
+            }
+
+            // Now, fetch all group memberships for this user separately
+            // This avoids the complex nested join that PostgREST struggles with
+            if (profileData) {
+                const { data: memberships, error: memberError } = await supabase
+                    .from('group_members')
+                    .select('group_id, role, groups(*)')
+                    .eq('user_id', userId);
+
+                if (memberError) {
+                    console.error("Error fetching group memberships:", memberError);
+                    profileData.groups = [];
+                    // Keep legacy backward compatibility temporarily
+                    profileData.group_id = profileData.group_id || null;
+                } else {
+                    // Normalize groups array for easier use in components
+                    profileData.groups = memberships
+                        ? memberships.filter(m => m.groups).map(m => ({ ...m.groups, role: m.role }))
+                        : [];
+
+                    // Set legacy group_id if they have at least one group
+                    profileData.group_id = profileData.groups.length > 0 ? profileData.groups[0].id : null;
                 }
             }
-        }
-        if (data) {
-            // Normalize groups array for easier use in components
-            data.groups = data.group_members
-                ? data.group_members.map(gm => ({ ...gm.groups, role: gm.role }))
-                : [];
-        }
 
-        setProfile(data);
+            setProfile(profileData);
+        } catch (err) {
+            console.error("Error in fetchProfile:", err);
+            setProfile(null);
+        }
     };
 
     const fetchGroups = async () => {
@@ -119,15 +142,19 @@ export function AuthProvider({ children }) {
         if (error) throw error;
 
         if (data.user && groupId) {
-            await supabase
-                .from('group_members')
-                .insert({ user_id: data.user.id, group_id: groupId, role: 'member' });
+            try {
+                await supabase
+                    .from('group_members')
+                    .insert({ user_id: data.user.id, group_id: groupId, role: 'member' });
 
-            // Keep legacy field updated for backward compatibility temporarily
-            await supabase
-                .from('profiles')
-                .update({ group_id: groupId })
-                .eq('id', data.user.id);
+                // Keep legacy field updated for backward compatibility temporarily
+                await supabase
+                    .from('profiles')
+                    .update({ group_id: groupId })
+                    .eq('id', data.user.id);
+            } catch (err) {
+                console.error("Error adding joined group during signup:", err);
+            }
         }
 
         return data;
