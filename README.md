@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mecazic
 
-## Getting Started
+Plateforme web de gestion de l'association musique **Mecazic** de l'ISAE-Supmeca : réservation de la salle de répétition, organisation des groupes et planification des concerts.
 
-First, run the development server:
+## Fonctionnalités
+
+### Calendrier de réservation
+- Grille hebdomadaire (8h-23h) de la salle de musique
+- Réservation d'un clic sur un créneau (30 min, 1h, 2h ou 4h), code couleur par groupe
+- Détection des conflits de créneaux (vérification côté client **et** contrainte anti-chevauchement en base)
+- Annulation par le créateur de la réservation ou un admin
+
+### Groupes
+- Création de groupe (nom, style musical, couleur) avec adhésion multi-groupes
+- Page de groupe : membres, réservations à venir, répertoire musical
+- Fiche par morceau : paroles récupérées automatiquement, liens YouTube, Songsterr et Ultimate Guitar
+
+### Concerts
+- Planification des événements (galas, afterworks, concerts)
+- Programme des passages par groupe : horaire, durée, ordre de passage
+- Setlist détaillée par passage : chansons, durées, répartition des rôles (« qui joue quoi »)
+- Timeline visuelle et compteurs automatiques (groupes, chansons, minutes totales)
+
+### Comptes et rôles
+- Inscription par email avec confirmation
+- **Membre** : réserver, gérer ses groupes, organiser des concerts
+- **Admin** : supprimer n'importe quelle réservation, groupe ou concert
+
+## Stack technique
+
+| Couche | Technologie |
+|--------|-------------|
+| Frontend | Next.js 16 (App Router) + React 19 |
+| Backend | Supabase (PostgreSQL, Auth, Row Level Security) |
+| Hébergement | Vercel |
+
+Toutes les tables sont protégées par RLS : modification du rôle impossible via l'API (anti-escalade de privilèges), emails non exposés aux visiteurs anonymes, chevauchement de réservations bloqué par contrainte `tsrange` en base.
+
+## Installation locale
 
 ```bash
+git clone https://github.com/Mecazic/mecazic-app.git
+cd mecazic-app
+npm install
+cp .env.example .env.local   # puis remplir avec les clés Supabase
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+L'app tourne sur [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## Setup Supabase (nouveau projet)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Créer un projet sur [supabase.com](https://supabase.com/dashboard) (région EU conseillée)
+2. **SQL Editor** → coller le contenu de `supabase-schema.sql` → Run
+3. **Project Settings → API Keys** : copier l'URL du projet et la clé `anon public` dans `.env.local` :
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+   ```
+4. Créer son compte via l'app, puis se promouvoir admin dans le SQL Editor :
+   ```sql
+   UPDATE public.profiles SET role = 'admin' WHERE email = 'ton.email@exemple.fr';
+   ```
 
-## Learn More
+## Déploiement (Vercel)
 
-To learn more about Next.js, take a look at the following resources:
+1. Connecter le repo GitHub à Vercel
+2. Renseigner les variables d'environnement `NEXT_PUBLIC_SUPABASE_URL` et `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+3. Dans Supabase : **Authentication → URL Configuration → Site URL** = l'URL Vercel de l'app (sinon les liens de confirmation par email pointent vers localhost)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+> **Note free tier Supabase** : le projet se met en pause après ~1 semaine sans requête, et est supprimé après ~90 jours de pause. Le réveiller depuis le dashboard si besoin (typiquement à la rentrée).
