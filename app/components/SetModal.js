@@ -2,6 +2,11 @@
 
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { AlertCircle } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
+import { Input } from '@/app/components/ui/input';
+import { Button } from '@/app/components/ui/button';
+import { cn } from '@/lib/utils';
 
 export default function SetModal({ concertId, set, groups, currentOrder, onClose, onSaved }) {
     const [groupId, setGroupId] = useState(set?.group_id || '');
@@ -54,98 +59,104 @@ export default function SetModal({ concertId, set, groups, currentOrder, onClose
     };
 
     const durationOptions = [15, 20, 30, 45, 60, 90, 120];
+    const selectedGroup = groups.find(g => g.id === groupId);
+    const labelClass = 'font-mono text-[11px] uppercase tracking-wider text-muted-foreground';
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal" onClick={(e) => e.stopPropagation()}>
-                <div className="modal-header">
-                    <h2>{set ? 'Modifier le passage' : 'Ajouter un passage'}</h2>
-                    <button className="btn btn-ghost btn-icon" onClick={onClose}>✕</button>
-                </div>
-                <form onSubmit={handleSubmit}>
-                    <div className="modal-body">
-                        <div className="form-group">
-                            <label className="form-label">Groupe *</label>
-                            <select
-                                className="form-select"
-                                value={groupId}
-                                onChange={(e) => setGroupId(e.target.value)}
-                            >
-                                <option value="">Sélectionner un groupe...</option>
-                                {groups.map(g => (
-                                    <option key={g.id} value={g.id}>
-                                        {g.name}
-                                    </option>
-                                ))}
-                            </select>
-                            {/* Group color preview */}
-                            {groupId && (
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
-                                    <span
-                                        style={{
-                                            width: '12px',
-                                            height: '12px',
-                                            borderRadius: '50%',
-                                            backgroundColor: groups.find(g => g.id === groupId)?.color || '#666',
-                                        }}
-                                    ></span>
-                                    <span className="text-muted" style={{ fontSize: '0.82rem' }}>
-                                        {groups.find(g => g.id === groupId)?.description || ''}
-                                    </span>
-                                </div>
-                            )}
-                        </div>
+        <Dialog open onOpenChange={(o) => !o && onClose()}>
+            <DialogContent className="border-border bg-card sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle className="font-display uppercase tracking-tight text-cream">
+                        {set ? 'Modifier le passage' : 'Ajouter un passage'}
+                    </DialogTitle>
+                </DialogHeader>
 
-                        <div className="form-group">
-                            <label className="form-label">Heure de début</label>
-                            <input
-                                type="time"
-                                className="form-input"
-                                value={startTime}
-                                onChange={(e) => setStartTime(e.target.value)}
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label className="form-label">Durée du passage</label>
-                            <div className="set-duration-grid">
-                                {durationOptions.map(d => (
-                                    <button
-                                        key={d}
-                                        type="button"
-                                        className={`set-duration-chip ${durationMinutes === d ? 'selected' : ''}`}
-                                        onClick={() => setDurationMinutes(d)}
-                                    >
-                                        {d} min
-                                    </button>
-                                ))}
+                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-1.5">
+                        <label className={labelClass}>Groupe *</label>
+                        <select
+                            className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm text-cream outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                            value={groupId}
+                            onChange={(e) => setGroupId(e.target.value)}
+                        >
+                            <option value="">Sélectionner un groupe…</option>
+                            {groups.map(g => (
+                                <option key={g.id} value={g.id}>
+                                    {g.name}
+                                </option>
+                            ))}
+                        </select>
+                        {selectedGroup && (
+                            <div className="mt-1.5 flex items-center gap-2">
+                                <span
+                                    className="h-3 w-3 rounded-full"
+                                    style={{ backgroundColor: selectedGroup.color || '#666' }}
+                                />
+                                <span className="text-xs text-muted-foreground">
+                                    {selectedGroup.description || ''}
+                                </span>
                             </div>
-                        </div>
-
-                        <div className="form-group">
-                            <label className="form-label">Notes</label>
-                            <textarea
-                                className="form-input"
-                                value={notes}
-                                onChange={(e) => setNotes(e.target.value)}
-                                placeholder="Infos supplémentaires sur le passage..."
-                                rows={2}
-                                style={{ resize: 'vertical' }}
-                            />
-                        </div>
-
-                        {error && <div className="form-error">⚠️ {error}</div>}
+                        )}
                     </div>
-                    <div className="modal-footer">
-                        <button type="button" className="btn btn-secondary" onClick={onClose}>
+
+                    <div className="flex flex-col gap-1.5">
+                        <label className={labelClass}>Heure de début</label>
+                        <Input
+                            type="time"
+                            value={startTime}
+                            onChange={(e) => setStartTime(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                        <label className={labelClass}>Durée du passage</label>
+                        <div className="flex flex-wrap gap-2">
+                            {durationOptions.map(d => (
+                                <button
+                                    key={d}
+                                    type="button"
+                                    onClick={() => setDurationMinutes(d)}
+                                    className={cn(
+                                        'rounded-full border px-3.5 py-1.5 text-sm font-semibold transition-colors',
+                                        durationMinutes === d
+                                            ? 'border-signal bg-signal/15 text-signal'
+                                            : 'border-border bg-panel text-muted-foreground hover:border-signal/50 hover:text-cream'
+                                    )}
+                                >
+                                    {d} min
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                        <label className={labelClass}>Notes</label>
+                        <textarea
+                            className="w-full resize-y rounded-md border border-input bg-transparent px-3 py-2 text-sm text-cream outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                            placeholder="Infos supplémentaires sur le passage…"
+                            rows={2}
+                        />
+                    </div>
+
+                    {error && (
+                        <div className="flex items-center gap-2 rounded-md border border-vu/30 bg-vu/10 px-3 py-2 text-sm text-vu">
+                            <AlertCircle className="h-4 w-4 shrink-0" />
+                            <span>{error}</span>
+                        </div>
+                    )}
+
+                    <div className="mt-2 flex justify-end gap-2">
+                        <Button type="button" variant="outline" onClick={onClose}>
                             Annuler
-                        </button>
-                        <button type="submit" className="btn btn-primary" disabled={saving}>
-                            {saving ? 'Enregistrement...' : (set ? 'Modifier' : 'Ajouter')}
-                        </button>
+                        </Button>
+                        <Button type="submit" disabled={saving}>
+                            {saving ? 'Enregistrement…' : (set ? 'Modifier' : 'Ajouter')}
+                        </Button>
                     </div>
                 </form>
-            </div>
-        </div>
+            </DialogContent>
+        </Dialog>
     );
 }

@@ -4,7 +4,10 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/app/contexts/AuthContext';
+import { Search, Mic2, Music } from 'lucide-react';
 import Avatar from './Avatar';
+
+const days3 = ['DIM', 'LUN', 'MAR', 'MER', 'JEU', 'VEN', 'SAM'];
 
 export default function Topbar() {
     const { profile } = useAuth();
@@ -13,7 +16,15 @@ export default function Topbar() {
     const [results, setResults] = useState(null);
     const [open, setOpen] = useState(false);
     const [searching, setSearching] = useState(false);
+    const [now, setNow] = useState(null);
     const debounceRef = useRef(null);
+
+    // Horloge timecode (touche console)
+    useEffect(() => {
+        setNow(new Date());
+        const t = setInterval(() => setNow(new Date()), 1000);
+        return () => clearInterval(t);
+    }, []);
 
     useEffect(() => {
         if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -59,65 +70,70 @@ export default function Topbar() {
 
     const hasResults = results && (results.groups.length || results.concerts.length || results.songs.length);
 
+    const clock = now
+        ? `${days3[now.getDay()]} ${String(now.getDate()).padStart(2, '0')}.${String(now.getMonth() + 1).padStart(2, '0')} · ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`
+        : '';
+
     return (
-        <div className="topbar">
-            <div className="topbar-search">
-                <span className="topbar-search-icon">⌕</span>
+        <div className="sticky top-0 z-30 -mx-4 mb-6 flex items-center gap-4 bg-console/85 px-4 py-3 backdrop-blur md:-mx-8 md:px-8">
+            <div className="relative w-full max-w-xl">
+                <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <input
                     type="text"
-                    placeholder="Rechercher un groupe, un concert, un morceau..."
+                    placeholder="Rechercher un groupe, un concert, un morceau…"
                     value={query}
                     onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
                     onFocus={() => setOpen(true)}
                     onBlur={() => setTimeout(() => setOpen(false), 150)}
                     onKeyDown={(e) => { if (e.key === 'Escape') { setOpen(false); setQuery(''); } }}
+                    className="w-full rounded-full border border-border bg-card py-2 pl-10 pr-4 text-sm text-cream outline-none transition-colors placeholder:text-muted-foreground focus:border-signal focus:ring-2 focus:ring-signal/30"
                 />
 
                 {open && query.trim().length >= 2 && (
-                    <div className="search-dropdown">
+                    <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 max-h-[420px] overflow-y-auto rounded-lg border border-border bg-popover shadow-2xl">
                         {searching && !results && (
-                            <div className="search-empty">Recherche...</div>
+                            <div className="p-4 text-center text-sm text-muted-foreground">Recherche…</div>
                         )}
 
                         {results && !hasResults && !searching && (
-                            <div className="search-empty">Aucun résultat pour « {query.trim()} »</div>
+                            <div className="p-4 text-center text-sm text-muted-foreground">Aucun résultat pour « {query.trim()} »</div>
                         )}
 
                         {results?.groups.length > 0 && (
-                            <div className="search-section">
-                                <div className="search-section-label">Groupes</div>
-                                {results.groups.map(g => (
-                                    <div key={g.id} className="search-row" onMouseDown={() => go(`/groups/${g.id}`)}>
-                                        <span className="search-row-dot" style={{ backgroundColor: g.color }}></span>
-                                        <span className="search-row-title">{g.name}</span>
-                                        <span className="search-row-sub">{g.description}</span>
-                                    </div>
+                            <div className="border-b border-border py-2 last:border-b-0">
+                                <div className="px-3 py-1 font-mono text-[10px] uppercase tracking-[0.15em] text-muted-foreground">Groupes</div>
+                                {results.groups.map((g) => (
+                                    <button key={g.id} type="button" onMouseDown={() => go(`/groups/${g.id}`)} className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-accent">
+                                        <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: g.color }} />
+                                        <span className="text-sm font-semibold text-cream">{g.name}</span>
+                                        <span className="truncate text-xs text-muted-foreground">{g.description}</span>
+                                    </button>
                                 ))}
                             </div>
                         )}
 
                         {results?.concerts.length > 0 && (
-                            <div className="search-section">
-                                <div className="search-section-label">Concerts</div>
-                                {results.concerts.map(c => (
-                                    <div key={c.id} className="search-row" onMouseDown={() => go('/concerts')}>
-                                        <span className="search-row-icon">🎤</span>
-                                        <span className="search-row-title">{c.name}</span>
-                                        <span className="search-row-sub">{c.location}</span>
-                                    </div>
+                            <div className="border-b border-border py-2 last:border-b-0">
+                                <div className="px-3 py-1 font-mono text-[10px] uppercase tracking-[0.15em] text-muted-foreground">Concerts</div>
+                                {results.concerts.map((c) => (
+                                    <button key={c.id} type="button" onMouseDown={() => go('/concerts')} className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-accent">
+                                        <Mic2 className="h-4 w-4 shrink-0 text-muted-foreground" />
+                                        <span className="text-sm font-semibold text-cream">{c.name}</span>
+                                        <span className="truncate text-xs text-muted-foreground">{c.location}</span>
+                                    </button>
                                 ))}
                             </div>
                         )}
 
                         {results?.songs.length > 0 && (
-                            <div className="search-section">
-                                <div className="search-section-label">Morceaux</div>
-                                {results.songs.map(s => (
-                                    <div key={s.id} className="search-row" onMouseDown={() => go(`/groups/${s.group_id}`)}>
-                                        <span className="search-row-icon">🎵</span>
-                                        <span className="search-row-title">{s.title}</span>
-                                        <span className="search-row-sub">{s.artist}{s.groups?.name ? ` · ${s.groups.name}` : ''}</span>
-                                    </div>
+                            <div className="border-b border-border py-2 last:border-b-0">
+                                <div className="px-3 py-1 font-mono text-[10px] uppercase tracking-[0.15em] text-muted-foreground">Morceaux</div>
+                                {results.songs.map((s) => (
+                                    <button key={s.id} type="button" onMouseDown={() => go(`/groups/${s.group_id}`)} className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-accent">
+                                        <Music className="h-4 w-4 shrink-0 text-muted-foreground" />
+                                        <span className="text-sm font-semibold text-cream">{s.title}</span>
+                                        <span className="truncate text-xs text-muted-foreground">{s.artist}{s.groups?.name ? ` · ${s.groups.name}` : ''}</span>
+                                    </button>
                                 ))}
                             </div>
                         )}
@@ -125,11 +141,10 @@ export default function Topbar() {
                 )}
             </div>
 
-            {profile && (
-                <div className="topbar-user">
-                    <Avatar name={profile.username} size={34} />
-                </div>
-            )}
+            <div className="ml-auto flex items-center gap-4">
+                <span className="hidden font-mono text-xs tabular-nums tracking-wide text-muted-foreground sm:inline">{clock}</span>
+                {profile && <Avatar name={profile.username} size={34} />}
+            </div>
         </div>
     );
 }

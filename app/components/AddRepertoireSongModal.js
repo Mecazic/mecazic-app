@@ -2,6 +2,10 @@
 
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { AlertCircle } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
+import { Input } from '@/app/components/ui/input';
+import { Button } from '@/app/components/ui/button';
 
 export default function AddRepertoireSongModal({ groupId, onClose, onSaved }) {
     const [title, setTitle] = useState('');
@@ -78,64 +82,69 @@ export default function AddRepertoireSongModal({ groupId, onClose, onSaved }) {
         }
     };
 
+    const labelClass = 'font-mono text-[11px] uppercase tracking-wider text-muted-foreground';
+
     return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal" onClick={(e) => e.stopPropagation()}>
-                <div className="modal-header">
-                    <h2>Ajouter au répertoire</h2>
-                    <button className="btn btn-ghost btn-icon" onClick={onClose}>✕</button>
-                </div>
-                <form onSubmit={handleSubmit}>
-                    <div className="modal-body">
-                        <div className="form-group">
-                            <label className="form-label">Titre du morceau *</label>
-                            <input
-                                type="text"
-                                className="form-input"
-                                value={title}
-                                onChange={(e) => setTitle(e.target.value)}
-                                placeholder="Ex: Zombie"
-                                autoFocus
-                            />
-                        </div>
+        <Dialog open onOpenChange={(o) => !o && onClose()}>
+            <DialogContent className="border-border bg-card sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle className="font-display uppercase tracking-tight text-cream">
+                        Ajouter au répertoire
+                    </DialogTitle>
+                </DialogHeader>
 
-                        <div className="form-group">
-                            <label className="form-label">Artiste / Groupe *</label>
-                            <input
-                                type="text"
-                                className="form-input"
-                                value={artist}
-                                onChange={(e) => setArtist(e.target.value)}
-                                placeholder="Ex: The Cranberries"
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label className="form-label">Lien YouTube (optionnel)</label>
-                            <input
-                                type="url"
-                                className="form-input"
-                                value={youtubeUrl}
-                                onChange={(e) => setYoutubeUrl(e.target.value)}
-                                placeholder="https://www.youtube.com/watch?v=..."
-                            />
-                            <small className="text-muted" style={{ display: 'block', marginTop: '4px' }}>
-                                Laisse vide pour générer automatiquement une recherche YouTube.
-                            </small>
-                        </div>
-
-                        {error && <div className="form-error">⚠️ {error}</div>}
+                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-1.5">
+                        <label className={labelClass}>Titre du morceau *</label>
+                        <Input
+                            type="text"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            placeholder="Ex : Zombie"
+                            autoFocus
+                        />
                     </div>
-                    <div className="modal-footer">
-                        <button type="button" className="btn btn-secondary" onClick={onClose}>
+
+                    <div className="flex flex-col gap-1.5">
+                        <label className={labelClass}>Artiste / Groupe *</label>
+                        <Input
+                            type="text"
+                            value={artist}
+                            onChange={(e) => setArtist(e.target.value)}
+                            placeholder="Ex : The Cranberries"
+                        />
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                        <label className={labelClass}>Lien YouTube (optionnel)</label>
+                        <Input
+                            type="url"
+                            value={youtubeUrl}
+                            onChange={(e) => setYoutubeUrl(e.target.value)}
+                            placeholder="https://www.youtube.com/watch?v=…"
+                        />
+                        <small className="text-xs text-muted-foreground">
+                            Laisse vide pour générer automatiquement une recherche YouTube.
+                        </small>
+                    </div>
+
+                    {error && (
+                        <div className="flex items-center gap-2 rounded-md border border-vu/30 bg-vu/10 px-3 py-2 text-sm text-vu">
+                            <AlertCircle className="h-4 w-4 shrink-0" />
+                            <span>{error}</span>
+                        </div>
+                    )}
+
+                    <div className="mt-2 flex justify-end gap-2">
+                        <Button type="button" variant="outline" onClick={onClose}>
                             Annuler
-                        </button>
-                        <button type="submit" className="btn btn-primary" disabled={saving}>
-                            {saving ? 'Ajout en cours...' : 'Ajouter'}
-                        </button>
+                        </Button>
+                        <Button type="submit" disabled={saving}>
+                            {saving ? 'Ajout en cours…' : 'Ajouter'}
+                        </Button>
                     </div>
                 </form>
-            </div>
-        </div>
+            </DialogContent>
+        </Dialog>
     );
 }

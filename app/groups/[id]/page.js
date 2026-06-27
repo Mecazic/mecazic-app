@@ -9,6 +9,14 @@ import LoginPage from '@/app/login/LoginPage';
 import Avatar from '@/app/components/Avatar';
 import AddRepertoireSongModal from '@/app/components/AddRepertoireSongModal';
 import SongDetailsModal from '@/app/components/SongDetailsModal';
+import { cn } from '@/lib/utils';
+import {
+    Music, Users, CalendarDays, Pencil, Plus, ArrowLeft, Loader2,
+    Play, Guitar, FileText, AlertTriangle,
+} from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
+import { Input } from '@/app/components/ui/input';
+import { Button } from '@/app/components/ui/button';
 
 const GROUP_COLORS = [
     { color: '#8B5CF6', label: 'Violet' },
@@ -74,9 +82,9 @@ export default function GroupPage() {
 
     if (authLoading) {
         return (
-            <div className="loading-page">
-                <div className="spinner"></div>
-                <p className="text-muted">Chargement...</p>
+            <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-console">
+                <Loader2 className="h-8 w-8 animate-spin text-signal" />
+                <p className="font-mono text-sm text-muted-foreground">Chargement…</p>
             </div>
         );
     }
@@ -171,107 +179,124 @@ export default function GroupPage() {
     const dayNames = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
     const monthNames = ['JAN', 'FÉV', 'MAR', 'AVR', 'MAI', 'JUIN', 'JUIL', 'AOÛT', 'SEP', 'OCT', 'NOV', 'DÉC'];
 
+    const labelClass = 'font-mono text-[11px] uppercase tracking-wider text-muted-foreground';
+
     return (
         <AppShell>
             {loading ? (
-                <div className="flex-center" style={{ padding: '120px 0' }}>
-                    <div className="spinner"></div>
+                <div className="flex items-center justify-center py-28">
+                    <Loader2 className="h-6 w-6 animate-spin text-signal" />
                 </div>
             ) : notFound || !group ? (
-                <div className="empty-state">
-                    <div className="empty-state-icon">🎸</div>
-                    <h3>Groupe introuvable</h3>
-                    <p className="text-muted">Ce groupe n'existe plus.</p>
-                    <button className="btn btn-primary mt-md" onClick={() => router.push('/groups')}>
-                        ← Retour aux groupes
-                    </button>
+                <div className="flex flex-col items-center gap-2 py-16 text-center">
+                    <Users className="h-12 w-12 text-muted-foreground/40" />
+                    <h3 className="font-semibold text-cream">Groupe introuvable</h3>
+                    <p className="text-sm text-muted-foreground">Ce groupe n'existe plus.</p>
+                    <Button className="mt-3" onClick={() => router.push('/groups')}>
+                        <ArrowLeft className="h-4 w-4" />
+                        Retour aux groupes
+                    </Button>
                 </div>
             ) : (
                 <>
                     {/* Hero */}
-                    <div className="group-hero">
+                    <div className="mb-6 overflow-hidden rounded-xl border border-border bg-card">
                         <div
-                            className="group-hero-banner"
-                            style={{
-                                background: `linear-gradient(120deg, ${group.color}55 0%, ${group.color}22 45%, var(--bg-card) 100%)`,
-                            }}
-                        ></div>
-                        <div className="group-hero-content">
+                            className="h-28"
+                            style={{ background: `linear-gradient(120deg, ${group.color}55 0%, ${group.color}22 45%, var(--card) 100%)` }}
+                        />
+                        <div className="-mt-11 flex flex-wrap items-end gap-4 px-6 pb-6">
                             <div
-                                className="group-hero-icon"
+                                className="flex h-20 w-20 shrink-0 items-center justify-center rounded-lg border shadow-md backdrop-blur"
                                 style={{ backgroundColor: group.color + '30', color: group.color, borderColor: group.color + '60' }}
                             >
-                                🎵
+                                <Music className="h-9 w-9" />
                             </div>
-                            <div className="group-hero-text">
-                                <div className="group-hero-title-row">
-                                    <h1>{group.name}</h1>
+                            <div className="min-w-[240px] flex-1">
+                                <div className="flex flex-wrap items-center gap-3">
+                                    <h1 className="font-display text-3xl font-extrabold uppercase tracking-tight text-cream">{group.name}</h1>
                                     {group.description && (
-                                        <span className="badge badge-group" style={{ backgroundColor: group.color }}>
+                                        <span
+                                            className="rounded-full px-3 py-0.5 text-xs font-semibold text-white"
+                                            style={{ backgroundColor: group.color }}
+                                        >
                                             {group.description}
                                         </span>
                                     )}
                                 </div>
-                                <div className="group-hero-meta">
+                                <div className="mt-1 flex flex-wrap items-center gap-2 font-mono text-xs text-muted-foreground">
                                     <span>{members.length} membre{members.length > 1 ? 's' : ''}</span>
                                     <span>·</span>
-                                    <span>{repertoire.length} morceau{repertoire.length > 1 ? 'x' : ''} au répertoire</span>
+                                    <span>{repertoire.length} morceau{repertoire.length > 1 ? 'x' : ''}</span>
                                     <span>·</span>
-                                    <span>{reservations.length} répétition{reservations.length > 1 ? 's' : ''} à venir</span>
+                                    <span>{reservations.length} répét{reservations.length > 1 ? 's' : ''} à venir</span>
                                 </div>
-                                <div className="avatar-stack">
-                                    {members.slice(0, 8).map(m => (
-                                        <Avatar key={m.id} name={m.username} size={32} />
-                                    ))}
-                                    {members.length > 8 && (
-                                        <span className="avatar-stack-more">+{members.length - 8}</span>
-                                    )}
-                                </div>
+                                {members.length > 0 && (
+                                    <div className="mt-3 flex items-center -space-x-2">
+                                        {members.slice(0, 8).map(m => (
+                                            <Avatar key={m.id} name={m.username} size={32} />
+                                        ))}
+                                        {members.length > 8 && (
+                                            <span className="ml-3 font-mono text-xs font-semibold text-muted-foreground">+{members.length - 8}</span>
+                                        )}
+                                    </div>
+                                )}
                             </div>
-                            <div className="group-hero-actions">
+                            <div className="ml-auto flex flex-wrap items-center gap-2">
                                 {canEdit && (
-                                    <button className="btn btn-secondary" onClick={openEdit}>
-                                        ✏️ Modifier le groupe
-                                    </button>
+                                    <Button variant="outline" onClick={openEdit}>
+                                        <Pencil className="h-4 w-4" />
+                                        Modifier
+                                    </Button>
                                 )}
                                 {isMyGroup ? (
-                                    <button className="btn btn-danger" onClick={handleLeave}>
+                                    <Button
+                                        variant="outline"
+                                        className="border-vu/40 text-vu hover:bg-vu/10 hover:text-vu"
+                                        onClick={handleLeave}
+                                    >
                                         Quitter le groupe
-                                    </button>
+                                    </Button>
                                 ) : (
-                                    <button
-                                        className="btn btn-primary"
-                                        style={{ backgroundColor: group.color, borderColor: group.color }}
+                                    <Button
+                                        className="text-white hover:opacity-90"
+                                        style={{ backgroundColor: group.color }}
                                         onClick={handleJoin}
                                     >
                                         Rejoindre ce groupe
-                                    </button>
+                                    </Button>
                                 )}
                             </div>
                         </div>
                     </div>
 
-                    {/* Contenu en deux colonnes */}
-                    <div className="page-grid">
-                        <div className="page-grid-main">
+                    {/* Contenu deux colonnes */}
+                    <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-3">
+                        <div className="flex flex-col gap-5 lg:col-span-2">
                             {/* Prochaines réservations */}
-                            <div className="panel">
-                                <div className="panel-header">
-                                    <h2>📅 Prochaines réservations</h2>
+                            <div className="rounded-lg border border-border bg-card p-5">
+                                <div className="mb-4 flex items-center justify-between">
+                                    <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-tight text-cream">
+                                        <CalendarDays className="h-4 w-4 text-signal" />
+                                        Prochaines réservations
+                                    </h2>
                                 </div>
                                 {reservations.length > 0 ? (
-                                    <div className="res-list">
+                                    <div className="flex flex-col gap-2">
                                         {reservations.map(r => {
                                             const d = new Date(r.date + 'T00:00:00');
                                             return (
-                                                <div key={r.id} className="res-row">
-                                                    <span className="res-date-block" style={{ borderColor: group.color + '50' }}>
-                                                        <span className="res-date-day">{d.getDate()}</span>
-                                                        <span className="res-date-month">{monthNames[d.getMonth()]}</span>
+                                                <div key={r.id} className="flex items-center gap-3 rounded-md border border-border bg-panel px-3 py-2.5">
+                                                    <span
+                                                        className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-md border bg-card"
+                                                        style={{ borderColor: group.color + '50' }}
+                                                    >
+                                                        <span className="font-display text-lg font-bold leading-none text-cream">{d.getDate()}</span>
+                                                        <span className="font-mono text-[9px] font-semibold tracking-wider text-muted-foreground">{monthNames[d.getMonth()]}</span>
                                                     </span>
-                                                    <span className="res-row-info">
-                                                        <span className="res-row-title">{r.title || 'Répétition'}</span>
-                                                        <span className="res-row-sub">
+                                                    <span className="flex min-w-0 flex-col">
+                                                        <span className="font-semibold text-cream">{r.title || 'Répétition'}</span>
+                                                        <span className="font-mono text-xs text-muted-foreground">
                                                             {dayNames[d.getDay()]} · {r.start_time.slice(0, 5)} → {getEndTime(r.start_time, r.duration)}
                                                         </span>
                                                     </span>
@@ -280,147 +305,169 @@ export default function GroupPage() {
                                         })}
                                     </div>
                                 ) : (
-                                    <p className="text-muted panel-empty">Aucune réservation prévue — direction le calendrier !</p>
+                                    <p className="py-2 text-sm italic text-muted-foreground">Aucune réservation prévue — direction le calendrier.</p>
                                 )}
                             </div>
 
                             {/* Répertoire */}
-                            <div className="panel">
-                                <div className="panel-header">
-                                    <h2>🎸 Répertoire <span className="panel-count">{repertoire.length}</span></h2>
+                            <div className="rounded-lg border border-border bg-card p-5">
+                                <div className="mb-4 flex items-center justify-between">
+                                    <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-tight text-cream">
+                                        <Guitar className="h-4 w-4 text-signal" />
+                                        Répertoire
+                                        <span className="rounded-full border border-border bg-panel px-2 py-0.5 text-[11px] font-bold text-muted-foreground">
+                                            {repertoire.length}
+                                        </span>
+                                    </h2>
                                     {isMyGroup && (
-                                        <button className="btn btn-primary btn-sm" onClick={() => setShowAddSong(true)}>
-                                            ＋ Ajouter
-                                        </button>
+                                        <Button size="sm" onClick={() => setShowAddSong(true)}>
+                                            <Plus className="h-3.5 w-3.5" />
+                                            Ajouter
+                                        </Button>
                                     )}
                                 </div>
                                 {repertoire.length > 0 ? (
-                                    <table className="repertoire-table">
+                                    <table className="w-full border-collapse">
                                         <thead>
-                                            <tr>
-                                                <th>Titre</th>
-                                                <th>Artiste</th>
-                                                <th>Durée</th>
-                                                <th>Liens</th>
+                                            <tr className="border-b border-border">
+                                                <th className="px-3 py-2 text-left font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Titre</th>
+                                                <th className="px-3 py-2 text-left font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Artiste</th>
+                                                <th className="px-3 py-2 text-left font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Durée</th>
+                                                <th className="px-3 py-2 text-left font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Liens</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {repertoire.map(song => (
-                                                <tr key={song.id} onClick={() => setSelectedSong(song)}>
-                                                    <td className="repertoire-title">{song.title}</td>
-                                                    <td className="text-secondary">{song.artist}</td>
-                                                    <td className="text-muted">{formatDuration(song.duration_seconds)}</td>
-                                                    <td className="repertoire-links" onClick={(e) => e.stopPropagation()}>
-                                                        <a
-                                                            href={song.youtube_url || `https://www.youtube.com/results?search_query=${encodeURIComponent(`${song.artist} ${song.title}`)}`}
-                                                            target="_blank" rel="noopener noreferrer" title="YouTube"
-                                                        >▶️</a>
-                                                        <a
-                                                            href={`https://www.songsterr.com/a/wa/bestMatchForQueryString?s=${encodeURIComponent(song.title)}&a=${encodeURIComponent(song.artist)}`}
-                                                            target="_blank" rel="noopener noreferrer" title="Tablatures Songsterr"
-                                                        >🎸</a>
-                                                        {song.lyrics && <span title="Paroles disponibles">📝</span>}
+                                                <tr
+                                                    key={song.id}
+                                                    onClick={() => setSelectedSong(song)}
+                                                    className="cursor-pointer border-b border-border/60 transition-colors last:border-0 hover:bg-panel/60"
+                                                >
+                                                    <td className="px-3 py-2.5 text-sm font-semibold text-cream">{song.title}</td>
+                                                    <td className="px-3 py-2.5 text-sm text-muted-foreground">{song.artist}</td>
+                                                    <td className="px-3 py-2.5 font-mono text-sm text-muted-foreground">{formatDuration(song.duration_seconds)}</td>
+                                                    <td className="px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
+                                                        <div className="flex items-center gap-2.5">
+                                                            <a
+                                                                href={song.youtube_url || `https://www.youtube.com/results?search_query=${encodeURIComponent(`${song.artist} ${song.title}`)}`}
+                                                                target="_blank" rel="noopener noreferrer" title="YouTube"
+                                                                className="text-muted-foreground transition-colors hover:text-vu"
+                                                            ><Play className="h-4 w-4" /></a>
+                                                            <a
+                                                                href={`https://www.songsterr.com/a/wa/bestMatchForQueryString?s=${encodeURIComponent(song.title)}&a=${encodeURIComponent(song.artist)}`}
+                                                                target="_blank" rel="noopener noreferrer" title="Tablatures Songsterr"
+                                                                className="text-muted-foreground transition-colors hover:text-signal"
+                                                            ><Guitar className="h-4 w-4" /></a>
+                                                            {song.lyrics && <FileText className="h-4 w-4 text-muted-foreground/60" title="Paroles disponibles" />}
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             ))}
                                         </tbody>
                                     </table>
                                 ) : (
-                                    <p className="text-muted panel-empty">
-                                        Aucun morceau pour le moment{isMyGroup ? ' — ajoute le premier !' : '.'}
+                                    <p className="py-2 text-sm italic text-muted-foreground">
+                                        Aucun morceau pour le moment{isMyGroup ? ' — ajoute le premier.' : '.'}
                                     </p>
                                 )}
                             </div>
                         </div>
 
-                        <div className="page-grid-side">
+                        <div className="flex flex-col gap-5">
                             {/* Membres */}
-                            <div className="panel">
-                                <div className="panel-header">
-                                    <h2>👥 Membres <span className="panel-count">{members.length}</span></h2>
+                            <div className="rounded-lg border border-border bg-card p-5">
+                                <div className="mb-4 flex items-center justify-between">
+                                    <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-tight text-cream">
+                                        <Users className="h-4 w-4 text-signal" />
+                                        Membres
+                                        <span className="rounded-full border border-border bg-panel px-2 py-0.5 text-[11px] font-bold text-muted-foreground">
+                                            {members.length}
+                                        </span>
+                                    </h2>
                                 </div>
                                 {members.length > 0 ? (
-                                    <div className="member-list">
+                                    <div className="flex flex-col gap-1">
                                         {members.map(m => (
-                                            <div key={m.id} className="member-row">
+                                            <div key={m.id} className="flex items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-panel/60">
                                                 <Avatar name={m.username} size={34} />
-                                                <span className="member-name">{m.username}</span>
-                                                {m.role === 'admin' && <span className="member-badge">admin</span>}
+                                                <span className="font-medium text-cream">{m.username}</span>
+                                                {m.role === 'admin' && (
+                                                    <span className="ml-auto rounded-full bg-signal/15 px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-signal">
+                                                        admin
+                                                    </span>
+                                                )}
                                             </div>
                                         ))}
                                     </div>
                                 ) : (
-                                    <p className="text-muted panel-empty">Personne pour le moment.</p>
+                                    <p className="py-2 text-sm italic text-muted-foreground">Personne pour le moment.</p>
                                 )}
                             </div>
                         </div>
                     </div>
 
-                    {/* Modal édition */}
+                    {/* Modale édition */}
                     {showEdit && (
-                        <div className="modal-overlay" onClick={() => setShowEdit(false)}>
-                            <div className="modal" onClick={e => e.stopPropagation()}>
-                                <div className="modal-header">
-                                    <h2>✏️ Modifier le groupe</h2>
-                                    <button className="btn btn-ghost btn-icon" onClick={() => setShowEdit(false)}>✕</button>
-                                </div>
-                                <div className="modal-body">
-                                    <div className="form-group">
-                                        <label className="form-label">Nom du groupe *</label>
-                                        <input
+                        <Dialog open onOpenChange={(o) => !o && setShowEdit(false)}>
+                            <DialogContent className="border-border bg-card sm:max-w-md">
+                                <DialogHeader>
+                                    <DialogTitle className="font-display uppercase tracking-tight text-cream">
+                                        Modifier le groupe
+                                    </DialogTitle>
+                                </DialogHeader>
+                                <div className="flex flex-col gap-4">
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className={labelClass}>Nom du groupe *</label>
+                                        <Input
                                             type="text"
-                                            className="form-input"
                                             value={editName}
                                             onChange={(e) => setEditName(e.target.value)}
                                         />
                                     </div>
-                                    <div className="form-group">
-                                        <label className="form-label">Style musical</label>
-                                        <input
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className={labelClass}>Style musical</label>
+                                        <Input
                                             type="text"
-                                            className="form-input"
                                             value={editDesc}
                                             onChange={(e) => setEditDesc(e.target.value)}
                                         />
                                     </div>
-                                    <div className="form-group">
-                                        <label className="form-label">Couleur</label>
-                                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className={labelClass}>Couleur</label>
+                                        <div className="flex flex-wrap gap-2">
                                             {GROUP_COLORS.map((c) => (
                                                 <button
                                                     key={c.color}
                                                     type="button"
                                                     onClick={() => setEditColor(c.color)}
-                                                    style={{
-                                                        width: '36px',
-                                                        height: '36px',
-                                                        borderRadius: '10px',
-                                                        backgroundColor: c.color,
-                                                        border: editColor === c.color ? '3px solid white' : '3px solid transparent',
-                                                        cursor: 'pointer',
-                                                    }}
+                                                    className={cn(
+                                                        'h-9 w-9 rounded-lg ring-2 ring-offset-2 ring-offset-card transition-transform',
+                                                        editColor === c.color ? 'scale-110 ring-cream' : 'ring-transparent hover:scale-105'
+                                                    )}
+                                                    style={{ backgroundColor: c.color }}
                                                     title={c.label}
                                                 />
                                             ))}
                                         </div>
                                     </div>
-                                    {editError && <div className="form-error">⚠️ {editError}</div>}
+                                    {editError && (
+                                        <div className="flex items-center gap-2 rounded-md border border-vu/30 bg-vu/10 px-3 py-2 text-sm text-vu">
+                                            <AlertTriangle className="h-4 w-4 shrink-0" />
+                                            {editError}
+                                        </div>
+                                    )}
+                                    <div className="mt-2 flex justify-end gap-2">
+                                        <Button variant="outline" onClick={() => setShowEdit(false)}>Annuler</Button>
+                                        <Button onClick={handleSaveEdit} disabled={saving || !editName.trim()}>
+                                            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Enregistrer'}
+                                        </Button>
+                                    </div>
                                 </div>
-                                <div className="modal-footer">
-                                    <button className="btn btn-secondary" onClick={() => setShowEdit(false)}>Annuler</button>
-                                    <button
-                                        className="btn btn-primary"
-                                        onClick={handleSaveEdit}
-                                        disabled={saving || !editName.trim()}
-                                    >
-                                        {saving ? <span className="spinner"></span> : '✓ Enregistrer'}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                            </DialogContent>
+                        </Dialog>
                     )}
 
-                    {/* Modals répertoire (réutilisés) */}
+                    {/* Modales répertoire (réutilisées) */}
                     {showAddSong && (
                         <AddRepertoireSongModal
                             groupId={group.id}

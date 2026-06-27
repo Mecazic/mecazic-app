@@ -3,11 +3,14 @@
 import { Fragment, useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/app/contexts/AuthContext';
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Button } from '@/app/components/ui/button';
 import ReservationModal from './ReservationModal';
 import ReservationDetail from './ReservationDetail';
 
 export default function Calendar() {
-    const { user, profile, groups } = useAuth();
+    const { groups } = useAuth();
     const [currentWeekStart, setCurrentWeekStart] = useState(() => getMonday(new Date()));
     const [reservations, setReservations] = useState([]);
     const [showModal, setShowModal] = useState(false);
@@ -43,14 +46,14 @@ export default function Calendar() {
 
             if (error) {
                 setFetchError(error.message);
-                console.error("Error fetching reservations:", error);
+                console.error('Error fetching reservations:', error);
             } else {
                 setFetchError(null);
                 setReservations(data || []);
             }
         } catch (err) {
-            console.error("Exception in fetchReservations:", err);
-            setFetchError("Erreur de chargement");
+            console.error('Exception in fetchReservations:', err);
+            setFetchError('Erreur de chargement');
         } finally {
             setLoading(false);
         }
@@ -63,8 +66,6 @@ export default function Calendar() {
     function getMonday(d) {
         const date = new Date(d);
         const day = date.getDay();
-        // JavaScript getDay() returns 0 for Sunday. 
-        // We want Monday (1) to be the start.
         const diff = date.getDate() - day + (day === 0 ? -6 : 1);
         date.setDate(diff);
         date.setHours(0, 0, 0, 0);
@@ -89,7 +90,6 @@ export default function Calendar() {
     }
 
     function handleCellClick(day, hour) {
-        // Check if slot is in the past
         const now = new Date();
         const slotDate = new Date(day);
         slotDate.setHours(hour, 0, 0, 0);
@@ -110,7 +110,7 @@ export default function Calendar() {
 
     function getReservationsForCell(day, hour) {
         const dateStr = formatDate(day);
-        return reservations.filter(r => {
+        return reservations.filter((r) => {
             if (r.date !== dateStr) return false;
             const startHour = parseInt(r.start_time.split(':')[0]);
             const startMin = parseInt(r.start_time.split(':')[1]);
@@ -127,10 +127,6 @@ export default function Calendar() {
         return startHour === hour;
     }
 
-    function getReservationSpan(reservation) {
-        return Math.ceil(reservation.duration / 60);
-    }
-
     function isToday(date) {
         const today = new Date();
         return date.toDateString() === today.toDateString();
@@ -144,117 +140,130 @@ export default function Calendar() {
     }
 
     const dayNames = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-    const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-        'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+    const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
 
     const weekLabel = (() => {
         const start = days[0];
         const end = days[6];
         if (start.getMonth() === end.getMonth()) {
-            return `${start.getDate()} - ${end.getDate()} ${monthNames[start.getMonth()]} ${start.getFullYear()}`;
+            return `${start.getDate()} – ${end.getDate()} ${monthNames[start.getMonth()]} ${start.getFullYear()}`;
         }
-        return `${start.getDate()} ${monthNames[start.getMonth()]} - ${end.getDate()} ${monthNames[end.getMonth()]} ${end.getFullYear()}`;
+        return `${start.getDate()} ${monthNames[start.getMonth()]} – ${end.getDate()} ${monthNames[end.getMonth()]} ${end.getFullYear()}`;
     })();
 
     return (
         <div>
-            <div className="calendar-header">
-                <h2>📅 {weekLabel}</h2>
-                <div className="calendar-nav">
-                    <button className="btn btn-secondary btn-sm" onClick={() => navigateWeek(-1)}>
-                        ← Précédent
-                    </button>
-                    <button className="btn btn-primary btn-sm" onClick={goToToday}>
-                        Aujourd'hui
-                    </button>
-                    <button className="btn btn-secondary btn-sm" onClick={() => navigateWeek(1)}>
-                        Suivant →
-                    </button>
-                    <button className="btn btn-primary btn-sm ml-md" onClick={() => { setSelectedSlot(null); setShowModal(true); }} style={{ marginLeft: '1rem' }}>
-                        + Nouvelle réservation
-                    </button>
+            {/* En-tête : transport */}
+            <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <h1 className="font-display text-2xl font-extrabold uppercase tracking-tight text-cream">Salle de répét</h1>
+                    <p className="mt-0.5 font-mono text-xs uppercase tracking-wider text-muted-foreground">{weekLabel}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                    <Button variant="outline" size="icon-sm" onClick={() => navigateWeek(-1)} aria-label="Semaine précédente">
+                        <ChevronLeft />
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={goToToday}>Aujourd&apos;hui</Button>
+                    <Button variant="outline" size="icon-sm" onClick={() => navigateWeek(1)} aria-label="Semaine suivante">
+                        <ChevronRight />
+                    </Button>
+                    <Button size="sm" className="ml-1" onClick={() => { setSelectedSlot(null); setShowModal(true); }}>
+                        <Plus />Réserver
+                    </Button>
                 </div>
             </div>
 
-            <div className="calendar-grid">
-                {/* Header row */}
-                <div className="calendar-time-header"></div>
-                {days.map((day, i) => (
-                    <div
-                        key={i}
-                        className={`calendar-day-header ${isToday(day) ? 'today' : ''}`}
-                    >
-                        <span className="calendar-day-name">{dayNames[i]}</span>
-                        <span className="calendar-day-number">{day.getDate()}</span>
-                    </div>
-                ))}
+            {fetchError && (
+                <div className="mb-4 rounded-md border border-vu/40 bg-vu/10 px-4 py-2 text-sm text-vu">
+                    {fetchError}
+                </div>
+            )}
 
-                {/* Time rows */}
-                {hours.map((hour) => (
-                    <Fragment key={hour}>
-                        <div className="calendar-time-label">
-                            {String(hour).padStart(2, '0')}:00
+            {/* Arrangement multipiste */}
+            <div className="overflow-hidden rounded-lg border border-border bg-card">
+                <div className="grid grid-cols-[56px_repeat(7,minmax(0,1fr))]">
+                    {/* Coin */}
+                    <div className="border-b border-r border-border bg-panel" />
+                    {days.map((day, i) => (
+                        <div key={i} className={cn('border-b border-border px-1 py-2 text-center', isToday(day) && 'bg-signal/5')}>
+                            <div className={cn('font-mono text-[10px] uppercase tracking-[0.12em]', isToday(day) ? 'text-signal' : 'text-muted-foreground')}>
+                                {dayNames[i]}
+                            </div>
+                            <div className={cn('mt-0.5 flex items-center justify-center gap-1 font-display text-lg font-bold leading-none', isToday(day) ? 'text-signal' : 'text-cream')}>
+                                {day.getDate()}
+                                {isToday(day) && <span className="h-1.5 w-1.5 rounded-full bg-vu shadow-[0_0_6px_var(--vu)]" />}
+                            </div>
                         </div>
-                        {days.map((day, dayIdx) => {
-                            const cellReservations = getReservationsForCell(day, hour);
-                            const past = isPast(day, hour);
+                    ))}
 
-                            return (
-                                <div
-                                    key={`${dayIdx}-${hour}`}
-                                    className={`calendar-cell ${isToday(day) ? 'today-column' : ''}`}
-                                    onClick={() => !past && handleCellClick(day, hour)}
-                                    style={{
-                                        opacity: past ? 0.4 : 1,
-                                        cursor: past ? 'default' : 'pointer',
-                                    }}
-                                >
-                                    {isToday(day) && hour === new Date().getHours() && (
-                                        <div className="now-line" style={{ top: `${new Date().getMinutes()}px` }}>
-                                            <span className="now-line-dot"></span>
-                                        </div>
-                                    )}
-                                    {cellReservations.map((r) => (
-                                        isReservationStart(r, hour) && (
-                                            <div
-                                                key={r.id}
-                                                className="reservation-block"
-                                                style={{
-                                                    backgroundColor: r.groups?.color || '#8B5CF6',
-                                                    height: `${(r.duration / 60) * 60 - 4}px`,
-                                                    position: 'absolute',
-                                                    top: `${parseInt(r.start_time.split(':')[1]) + 2}px`,
-                                                    left: '2px',
-                                                    right: '2px',
-                                                    zIndex: 2,
-                                                }}
-                                                onClick={(e) => handleReservationClick(e, r)}
-                                            >
-                                                <span className="reservation-block-title">{r.title}</span>
-                                                <span className="reservation-block-group">{r.groups?.name}</span>
-                                                <span className="reservation-block-time">
-                                                    {r.start_time.slice(0, 5)} - {getEndTime(r.start_time, r.duration)}
-                                                </span>
+                    {/* Lignes horaires */}
+                    {hours.map((hour) => (
+                        <Fragment key={hour}>
+                            <div className="flex min-h-[60px] items-start justify-end border-b border-r border-border px-2 pt-1 font-mono text-[11px] text-muted-foreground">
+                                {String(hour).padStart(2, '0')}:00
+                            </div>
+                            {days.map((day, dayIdx) => {
+                                const cellReservations = getReservationsForCell(day, hour);
+                                const past = isPast(day, hour);
+
+                                return (
+                                    <div
+                                        key={`${dayIdx}-${hour}`}
+                                        onClick={() => !past && handleCellClick(day, hour)}
+                                        className={cn(
+                                            'relative min-h-[60px] border-b border-r border-border p-0.5 transition-colors last:border-r-0',
+                                            isToday(day) && 'bg-signal/[0.03]',
+                                            past ? 'opacity-40' : 'cursor-pointer hover:bg-signal/[0.06]'
+                                        )}
+                                    >
+                                        {isToday(day) && hour === new Date().getHours() && (
+                                            <div className="pointer-events-none absolute inset-x-0 z-20" style={{ top: `${new Date().getMinutes()}px` }}>
+                                                <div className="relative h-[2px] bg-vu shadow-[0_0_6px_rgba(232,67,31,0.7)]">
+                                                    <span className="absolute -left-px -top-1 h-0 w-0 border-y-[5px] border-l-[7px] border-y-transparent border-l-vu" />
+                                                </div>
                                             </div>
-                                        )
-                                    ))}
-                                </div>
-                            );
-                        })}
-                    </Fragment>
-                ))}
+                                        )}
+                                        {cellReservations.map((r) => (
+                                            isReservationStart(r, hour) && (
+                                                <button
+                                                    key={r.id}
+                                                    onClick={(e) => handleReservationClick(e, r)}
+                                                    className="absolute inset-x-0.5 z-10 flex flex-col overflow-hidden rounded-sm border-l-[3px] px-1.5 py-1 text-left transition-all hover:z-30 hover:brightness-110 hover:ring-1 hover:ring-cream/20"
+                                                    style={{
+                                                        top: `${parseInt(r.start_time.split(':')[1]) + 2}px`,
+                                                        height: `${(r.duration / 60) * 60 - 4}px`,
+                                                        borderLeftColor: r.groups?.color || '#FFAA2B',
+                                                        backgroundColor: `color-mix(in srgb, ${r.groups?.color || '#FFAA2B'} 22%, #16130F)`,
+                                                    }}
+                                                >
+                                                    <span className="truncate text-[11px] font-semibold leading-tight text-cream">{r.title}</span>
+                                                    <span className="truncate text-[10px] leading-tight text-cream/60">{r.groups?.name}</span>
+                                                    <span className="mt-auto font-mono text-[10px] text-cream/70">
+                                                        {r.start_time.slice(0, 5)}–{getEndTime(r.start_time, r.duration)}
+                                                    </span>
+                                                </button>
+                                            )
+                                        ))}
+                                    </div>
+                                );
+                            })}
+                        </Fragment>
+                    ))}
+                </div>
             </div>
 
-            {/* Legend */}
-            <div className="flex gap-md mt-lg" style={{ flexWrap: 'wrap' }}>
+            {/* Légende : pistes (groupes) */}
+            <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2">
+                <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-muted-foreground">Pistes</span>
                 {groups.map((g) => (
-                    <div key={g.id} className="badge badge-group" style={{ backgroundColor: g.color }}>
+                    <span key={g.id} className="flex items-center gap-2 text-xs text-cream">
+                        <span className="h-2.5 w-2.5 rounded-[2px]" style={{ backgroundColor: g.color }} />
                         {g.name}
-                    </div>
+                    </span>
                 ))}
             </div>
 
-            {/* Modals */}
+            {/* Modales */}
             {showModal && (
                 <ReservationModal
                     slot={selectedSlot}

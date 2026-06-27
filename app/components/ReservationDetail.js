@@ -3,6 +3,9 @@
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/app/contexts/AuthContext';
+import { Tag, Users, CalendarDays, Clock, User, Trash2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
+import { Button } from '@/app/components/ui/button';
 
 export default function ReservationDetail({ reservation, onClose, onDeleted }) {
     const { user, profile } = useAuth();
@@ -42,83 +45,61 @@ export default function ReservationDetail({ reservation, onClose, onDeleted }) {
 
     const durationLabels = { 30: '30 min', 60: '1 heure', 120: '2 heures', 240: '4 heures' };
 
-    return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal" onClick={e => e.stopPropagation()}>
-                <div className="modal-header">
-                    <h2>🎵 Détails de la réservation</h2>
-                    <button className="btn btn-ghost btn-icon" onClick={onClose}>✕</button>
-                </div>
-
-                <div className="reservation-detail">
-                    <div className="reservation-detail-row">
-                        <span className="reservation-detail-icon">📌</span>
-                        <div>
-                            <div className="reservation-detail-label">Titre</div>
-                            <div className="reservation-detail-value">{reservation.title}</div>
-                        </div>
-                    </div>
-
-                    <div className="reservation-detail-row">
-                        <span className="reservation-detail-icon">🎸</span>
-                        <div>
-                            <div className="reservation-detail-label">Groupe</div>
-                            <div className="reservation-detail-value">
-                                <span
-                                    className="badge badge-group"
-                                    style={{ backgroundColor: reservation.groups?.color }}
-                                >
-                                    {reservation.groups?.name}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="reservation-detail-row">
-                        <span className="reservation-detail-icon">📅</span>
-                        <div>
-                            <div className="reservation-detail-label">Date</div>
-                            <div className="reservation-detail-value">{dateLabel}</div>
-                        </div>
-                    </div>
-
-                    <div className="reservation-detail-row">
-                        <span className="reservation-detail-icon">🕐</span>
-                        <div>
-                            <div className="reservation-detail-label">Horaire</div>
-                            <div className="reservation-detail-value">
-                                {reservation.start_time.slice(0, 5)} → {getEndTime(reservation.start_time, reservation.duration)}
-                                <span className="text-muted" style={{ marginLeft: '8px', fontSize: '0.85rem' }}>
-                                    ({durationLabels[reservation.duration]})
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="reservation-detail-row">
-                        <span className="reservation-detail-icon">👤</span>
-                        <div>
-                            <div className="reservation-detail-label">Réservé par</div>
-                            <div className="reservation-detail-value">
-                                {reservation.profiles?.username || 'Inconnu'}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="modal-footer">
-                    <button className="btn btn-secondary" onClick={onClose}>Fermer</button>
-                    {canDelete && (
-                        <button
-                            className="btn btn-danger"
-                            onClick={handleDelete}
-                            disabled={loading}
-                        >
-                            {loading ? 'Suppression...' : '🗑️ Supprimer'}
-                        </button>
-                    )}
-                </div>
+    const Row = ({ icon: Icon, label, children }) => (
+        <div className="flex items-start gap-3">
+            <Icon className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
+            <div className="min-w-0">
+                <div className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">{label}</div>
+                <div className="mt-0.5 font-medium text-cream">{children}</div>
             </div>
         </div>
+    );
+
+    return (
+        <Dialog open onOpenChange={(o) => !o && onClose()}>
+            <DialogContent className="border-border bg-card sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle className="font-display uppercase tracking-tight text-cream">
+                        Détails de la réservation
+                    </DialogTitle>
+                </DialogHeader>
+
+                <div className="flex flex-col gap-4">
+                    <Row icon={Tag} label="Titre">{reservation.title}</Row>
+
+                    <Row icon={Users} label="Groupe">
+                        <span
+                            className="inline-block rounded-full px-3 py-0.5 text-sm font-semibold text-white"
+                            style={{ backgroundColor: reservation.groups?.color }}
+                        >
+                            {reservation.groups?.name}
+                        </span>
+                    </Row>
+
+                    <Row icon={CalendarDays} label="Date">{dateLabel}</Row>
+
+                    <Row icon={Clock} label="Horaire">
+                        {reservation.start_time.slice(0, 5)} → {getEndTime(reservation.start_time, reservation.duration)}
+                        <span className="ml-2 font-mono text-xs text-muted-foreground">
+                            ({durationLabels[reservation.duration]})
+                        </span>
+                    </Row>
+
+                    <Row icon={User} label="Réservé par">
+                        {reservation.profiles?.username || 'Inconnu'}
+                    </Row>
+                </div>
+
+                <div className="mt-2 flex justify-end gap-2">
+                    <Button variant="outline" onClick={onClose}>Fermer</Button>
+                    {canDelete && (
+                        <Button variant="destructive" onClick={handleDelete} disabled={loading}>
+                            <Trash2 className="h-4 w-4" />
+                            {loading ? 'Suppression…' : 'Supprimer'}
+                        </Button>
+                    )}
+                </div>
+            </DialogContent>
+        </Dialog>
     );
 }

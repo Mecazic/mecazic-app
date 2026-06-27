@@ -3,6 +3,11 @@
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/app/contexts/AuthContext';
+import { CalendarDays, AlertCircle, Loader2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
+import { Input } from '@/app/components/ui/input';
+import { Button } from '@/app/components/ui/button';
+import { cn } from '@/lib/utils';
 
 export default function ReservationModal({ slot, onClose, onCreated }) {
     const { user, profile } = useAuth();
@@ -94,7 +99,7 @@ export default function ReservationModal({ slot, onClose, onCreated }) {
             });
 
             if (conflict) {
-                setError(`⚠️ Conflit avec une réservation de ${conflict.groups?.name || 'un groupe'}`);
+                setError(`Conflit avec une réservation de ${conflict.groups?.name || 'un groupe'}.`);
                 setLoading(false);
                 return;
             }
@@ -124,7 +129,7 @@ export default function ReservationModal({ slot, onClose, onCreated }) {
         } catch (err) {
             if (err.code === '23P01') {
                 // Contrainte anti-chevauchement de la base (race condition)
-                setError('⚠️ Ce créneau vient d\'être réservé par quelqu\'un d\'autre.');
+                setError('Ce créneau vient d\'être réservé par quelqu\'un d\'autre.');
             } else {
                 setError(err.message);
             }
@@ -139,144 +144,140 @@ export default function ReservationModal({ slot, onClose, onCreated }) {
     const dateObj = new Date(activeDate + 'T00:00:00');
     const dateLabel = `${dayNames[dateObj.getDay()]} ${dateObj.getDate()} ${monthNames[dateObj.getMonth()]}`;
 
+    const labelClass = 'font-mono text-[11px] uppercase tracking-wider text-muted-foreground';
+
     return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal" onClick={e => e.stopPropagation()}>
-                <div className="modal-header">
-                    <h2>🎵 Nouvelle réservation</h2>
-                    <button className="btn btn-ghost btn-icon" onClick={onClose}>✕</button>
-                </div>
+        <Dialog open onOpenChange={(o) => !o && onClose()}>
+            <DialogContent className="border-border bg-card sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle className="font-display uppercase tracking-tight text-cream">
+                        Nouvelle réservation
+                    </DialogTitle>
+                </DialogHeader>
 
-                <form onSubmit={handleSubmit}>
-                    <div className="modal-body">
-                        {/* Date & Time info */}
-                        {slot ? (
-                            <div className="card" style={{ background: 'var(--bg-tertiary)' }}>
-                                <div className="flex gap-md" style={{ alignItems: 'center' }}>
-                                    <span style={{ fontSize: '1.5rem' }}>📆</span>
-                                    <div>
-                                        <div style={{ fontWeight: 600 }}>{dateLabel}</div>
-                                        <div className="text-muted" style={{ fontSize: '0.85rem' }}>
-                                            {activeTime} → {getEndTime()}
-                                        </div>
-                                    </div>
+                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                    {/* Date & heure */}
+                    {slot ? (
+                        <div className="flex items-center gap-3 rounded-md border border-border bg-panel px-4 py-3">
+                            <CalendarDays className="h-5 w-5 text-signal" />
+                            <div>
+                                <div className="font-semibold text-cream">{dateLabel}</div>
+                                <div className="font-mono text-xs text-muted-foreground">
+                                    {activeTime} → {getEndTime()}
                                 </div>
-                            </div>
-                        ) : (
-                            <div className="flex gap-md">
-                                <div className="form-group" style={{ flex: 1 }}>
-                                    <label className="form-label">Date</label>
-                                    <input
-                                        type="date"
-                                        className="form-input"
-                                        value={activeDate}
-                                        onChange={(e) => setCustomDate(e.target.value)}
-                                        min={new Date().toISOString().split('T')[0]}
-                                        required
-                                    />
-                                </div>
-                                <div className="form-group" style={{ flex: 1 }}>
-                                    <label className="form-label">Heure de début</label>
-                                    <input
-                                        type="time"
-                                        className="form-input"
-                                        value={activeTime}
-                                        onChange={(e) => setCustomTime(e.target.value)}
-                                        step="1800"
-                                        required
-                                    />
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Group info selection */}
-                        {profile?.groups?.length > 0 && (
-                            <div className="form-group">
-                                <label className="form-label">Groupe</label>
-                                {profile.groups.length === 1 ? (
-                                    <div className="flex gap-md" style={{ alignItems: 'center' }}>
-                                        <div
-                                            className="badge badge-group"
-                                            style={{ backgroundColor: profile.groups[0].color }}
-                                        >
-                                            {profile.groups[0].name}
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <select
-                                        className="form-input"
-                                        value={selectedGroupId}
-                                        onChange={(e) => setSelectedGroupId(e.target.value)}
-                                        required
-                                    >
-                                        {profile.groups.map(g => (
-                                            <option key={g.id} value={g.id}>
-                                                {g.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                )}
-                            </div>
-                        )}
-
-                        {/* Title */}
-                        <div className="form-group">
-                            <label className="form-label">Titre</label>
-                            <input
-                                type="text"
-                                className="form-input"
-                                value={title}
-                                onChange={(e) => setTitle(e.target.value)}
-                                placeholder="Ex: Répétition concert"
-                                maxLength={50}
-                            />
-                        </div>
-
-                        {/* Duration selector */}
-                        <div className="form-group">
-                            <label className="form-label">Durée</label>
-                            <div className="duration-selector">
-                                {durations.map((d) => (
-                                    <button
-                                        key={d.value}
-                                        type="button"
-                                        className={`duration-option ${duration === d.value ? 'selected' : ''}`}
-                                        onClick={() => setDuration(d.value)}
-                                    >
-                                        <span className="duration-option-value">{d.label}</span>
-                                    </button>
-                                ))}
                             </div>
                         </div>
-
-                        {error && (
-                            <div className="form-error">
-                                {error}
+                    ) : (
+                        <div className="flex gap-3">
+                            <div className="flex flex-1 flex-col gap-1.5">
+                                <label className={labelClass}>Date</label>
+                                <Input
+                                    type="date"
+                                    value={activeDate}
+                                    onChange={(e) => setCustomDate(e.target.value)}
+                                    min={new Date().toISOString().split('T')[0]}
+                                    required
+                                />
                             </div>
-                        )}
+                            <div className="flex flex-1 flex-col gap-1.5">
+                                <label className={labelClass}>Heure de début</label>
+                                <Input
+                                    type="time"
+                                    value={activeTime}
+                                    onChange={(e) => setCustomTime(e.target.value)}
+                                    step="1800"
+                                    required
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Groupe */}
+                    {profile?.groups?.length > 0 && (
+                        <div className="flex flex-col gap-1.5">
+                            <label className={labelClass}>Groupe</label>
+                            {profile.groups.length === 1 ? (
+                                <span
+                                    className="w-fit rounded-full px-3 py-1 text-sm font-semibold text-white"
+                                    style={{ backgroundColor: profile.groups[0].color }}
+                                >
+                                    {profile.groups[0].name}
+                                </span>
+                            ) : (
+                                <select
+                                    className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm text-cream outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                                    value={selectedGroupId}
+                                    onChange={(e) => setSelectedGroupId(e.target.value)}
+                                    required
+                                >
+                                    {profile.groups.map(g => (
+                                        <option key={g.id} value={g.id}>
+                                            {g.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Titre */}
+                    <div className="flex flex-col gap-1.5">
+                        <label className={labelClass}>Titre</label>
+                        <Input
+                            type="text"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            placeholder="Ex : Répétition concert"
+                            maxLength={50}
+                        />
                     </div>
 
-                    <div className="modal-footer">
-                        <button type="button" className="btn btn-secondary" onClick={onClose}>
+                    {/* Durée */}
+                    <div className="flex flex-col gap-1.5">
+                        <label className={labelClass}>Durée</label>
+                        <div className="grid grid-cols-4 gap-2">
+                            {durations.map((d) => (
+                                <button
+                                    key={d.value}
+                                    type="button"
+                                    onClick={() => setDuration(d.value)}
+                                    className={cn(
+                                        'rounded-md border py-2 text-sm font-semibold transition-colors',
+                                        duration === d.value
+                                            ? 'border-signal bg-signal/15 text-signal'
+                                            : 'border-border bg-panel text-muted-foreground hover:border-signal/50 hover:text-cream'
+                                    )}
+                                >
+                                    {d.label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {error && (
+                        <div className="flex items-center gap-2 rounded-md border border-vu/30 bg-vu/10 px-3 py-2 text-sm text-vu">
+                            <AlertCircle className="h-4 w-4 shrink-0" />
+                            <span>{error}</span>
+                        </div>
+                    )}
+
+                    <div className="mt-2 flex justify-end gap-2">
+                        <Button type="button" variant="outline" onClick={onClose}>
                             Annuler
-                        </button>
-                        <button
-                            type="submit"
-                            className="btn btn-primary"
-                            disabled={loading || !title.trim()}
-                        >
+                        </Button>
+                        <Button type="submit" disabled={loading || !title.trim()}>
                             {loading ? (
                                 <>
-                                    <span className="spinner"></span>
-                                    Réservation...
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                    Réservation…
                                 </>
                             ) : (
-                                '✓ Réserver'
+                                'Réserver'
                             )}
-                        </button>
+                        </Button>
                     </div>
                 </form>
-            </div>
-        </div>
+            </DialogContent>
+        </Dialog>
     );
 }

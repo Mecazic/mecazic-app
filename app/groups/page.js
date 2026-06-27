@@ -6,6 +6,10 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/app/contexts/AuthContext';
 import AppShell from '@/app/components/AppShell';
 import LoginPage from '@/app/login/LoginPage';
+import { cn } from '@/lib/utils';
+import { Users, Plus, X, AlertTriangle, CheckCircle2, Music, Trash2, Loader2 } from 'lucide-react';
+import { Input } from '@/app/components/ui/input';
+import { Button } from '@/app/components/ui/button';
 
 const GROUP_COLORS = [
     { color: '#8B5CF6', label: 'Violet' },
@@ -119,7 +123,7 @@ export default function GroupsPage() {
             setShowCreateGroup(false);
             setNewGroupName('');
             setNewGroupDesc('');
-            setCreateSuccess(`Groupe "${data.name}" créé et rejoint ! 🎉`);
+            setCreateSuccess(`Groupe "${data.name}" créé et rejoint.`);
             setTimeout(() => setCreateSuccess(''), 4000);
         } catch (err) {
             if (err.message?.includes('duplicate')) {
@@ -193,7 +197,7 @@ export default function GroupsPage() {
     };
 
     const handleDeleteGroup = async (groupId) => {
-        if (!confirm("⚠️ ATTENTION : Cela supprimera définitivement le groupe, ses membres, son répertoire et toutes ses réservations. Continuer ?")) return;
+        if (!confirm("ATTENTION : Cela supprimera définitivement le groupe, ses membres, son répertoire et toutes ses réservations. Continuer ?")) return;
 
         try {
             const { error } = await supabase.from('groups').delete().eq('id', groupId);
@@ -214,253 +218,224 @@ export default function GroupsPage() {
 
     if (authLoading) {
         return (
-            <div className="loading-page">
-                <div className="spinner"></div>
-                <p className="text-muted">Chargement...</p>
+            <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-console">
+                <Loader2 className="h-8 w-8 animate-spin text-signal" />
+                <p className="font-mono text-sm text-muted-foreground">Chargement…</p>
             </div>
         );
     }
 
     if (!user) return <LoginPage />;
 
-    const getEndTime = (startTime, duration) => {
-        const [h, m] = startTime.split(':').map(Number);
-        const total = h * 60 + m + duration;
-        return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
-    };
-
-    const dayNames = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
-    const monthNames = ['jan', 'fév', 'mar', 'avr', 'mai', 'juin', 'juil', 'août', 'sep', 'oct', 'nov', 'déc'];
-
-    const formatDate = (dateStr) => {
-        const d = new Date(dateStr + 'T00:00:00');
-        return `${dayNames[d.getDay()]} ${d.getDate()} ${monthNames[d.getMonth()]}`;
-    };
+    const labelClass = 'font-mono text-[11px] uppercase tracking-wider text-muted-foreground';
 
     return (
         <AppShell>
-                <div className="page-header">
-                    <h1>
-                        <span className="page-header-icon">🎸</span>
-                        Groupes de musique
-                    </h1>
-                    <button
-                        className="btn btn-primary"
-                        onClick={() => setShowCreateGroup(!showCreateGroup)}
-                    >
-                        {showCreateGroup ? '✕ Annuler' : '＋ Créer un groupe'}
-                    </button>
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+                <h1 className="flex items-center gap-2.5 font-display text-2xl font-extrabold uppercase tracking-tight text-cream">
+                    <Users className="h-6 w-6 text-signal" />
+                    Groupes de musique
+                </h1>
+                <Button
+                    variant={showCreateGroup ? 'outline' : 'default'}
+                    onClick={() => setShowCreateGroup(!showCreateGroup)}
+                >
+                    {showCreateGroup ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                    {showCreateGroup ? 'Annuler' : 'Créer un groupe'}
+                </Button>
+            </div>
+
+            {/* Avertissement sans groupe */}
+            {(!profile?.groups || profile.groups.length === 0) && (
+                <div className="mb-5 flex items-center gap-3 rounded-lg border border-signal/30 bg-signal/[0.08] px-4 py-3">
+                    <AlertTriangle className="h-5 w-5 shrink-0 text-signal" />
+                    <div>
+                        <div className="font-semibold text-cream">Tu n'as pas encore de groupe</div>
+                        <div className="text-sm text-muted-foreground">
+                            Rejoins un groupe existant ou crée le tien pour pouvoir réserver la salle.
+                        </div>
+                    </div>
                 </div>
+            )}
 
-                {/* No group warning */}
-                {(!profile?.groups || profile.groups.length === 0) && (
-                    <div className="card" style={{
-                        marginBottom: 'var(--space-lg)',
-                        borderLeft: '3px solid var(--accent-warning)',
-                        background: 'rgba(245, 158, 11, 0.08)',
-                    }}>
-                        <div className="flex gap-md" style={{ alignItems: 'center' }}>
-                            <span style={{ fontSize: '1.5rem' }}>⚠️</span>
-                            <div>
-                                <div style={{ fontWeight: 600 }}>Tu n'as pas encore de groupe</div>
-                                <div className="text-muted" style={{ fontSize: '0.85rem' }}>
-                                    Rejoins un groupe existant ou crée le tien pour pouvoir réserver la salle.
-                                </div>
+            {/* Message de succès */}
+            {createSuccess && (
+                <div className="mb-5 flex items-center gap-2 rounded-lg border border-chart-3/30 bg-chart-3/10 px-4 py-3 text-sm text-chart-3">
+                    <CheckCircle2 className="h-4 w-4 shrink-0" />
+                    {createSuccess}
+                </div>
+            )}
+
+            {/* Formulaire de création */}
+            {showCreateGroup && (
+                <div className="mb-8 rounded-lg border border-border bg-card p-6">
+                    <h3 className="mb-5 font-display text-lg font-bold uppercase tracking-tight text-cream">
+                        Créer un nouveau groupe
+                    </h3>
+
+                    <div className="flex flex-col gap-4">
+                        <div className="flex flex-col gap-1.5">
+                            <label className={labelClass}>Nom du groupe *</label>
+                            <Input
+                                type="text"
+                                placeholder="Ex : Les Amplifiés"
+                                value={newGroupName}
+                                onChange={(e) => setNewGroupName(e.target.value)}
+                            />
+                        </div>
+
+                        <div className="flex flex-col gap-1.5">
+                            <label className={labelClass}>Style musical</label>
+                            <Input
+                                type="text"
+                                placeholder="Ex : Rock & Metal"
+                                value={newGroupDesc}
+                                onChange={(e) => setNewGroupDesc(e.target.value)}
+                            />
+                        </div>
+
+                        <div className="flex flex-col gap-1.5">
+                            <label className={labelClass}>Couleur du groupe</label>
+                            <div className="flex flex-wrap gap-2">
+                                {GROUP_COLORS.map((c) => (
+                                    <button
+                                        key={c.color}
+                                        type="button"
+                                        onClick={() => setNewGroupColor(c.color)}
+                                        className={cn(
+                                            'h-10 w-10 rounded-lg ring-2 ring-offset-2 ring-offset-card transition-transform',
+                                            newGroupColor === c.color
+                                                ? 'scale-110 ring-cream'
+                                                : 'ring-transparent hover:scale-105'
+                                        )}
+                                        style={{ backgroundColor: c.color }}
+                                        title={c.label}
+                                    />
+                                ))}
                             </div>
                         </div>
+
+                        {createError && (
+                            <div className="flex items-center gap-2 rounded-md border border-vu/30 bg-vu/10 px-3 py-2 text-sm text-vu">
+                                <AlertTriangle className="h-4 w-4 shrink-0" />
+                                {createError}
+                            </div>
+                        )}
+
+                        <Button
+                            className="self-start"
+                            onClick={handleCreateGroup}
+                            disabled={creatingGroup || !newGroupName.trim()}
+                        >
+                            {creatingGroup ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Créer et rejoindre le groupe'}
+                        </Button>
                     </div>
-                )}
+                </div>
+            )}
 
-                {/* Success message */}
-                {createSuccess && (
-                    <div className="card" style={{
-                        marginBottom: 'var(--space-lg)',
-                        borderLeft: '3px solid var(--accent-success)',
-                        background: 'rgba(16, 185, 129, 0.08)',
-                        fontSize: '0.9rem',
-                    }}>
-                        {createSuccess}
-                    </div>
-                )}
+            {loading ? (
+                <div className="flex items-center justify-center py-20">
+                    <Loader2 className="h-6 w-6 animate-spin text-signal" />
+                </div>
+            ) : groups.length === 0 ? (
+                <div className="flex flex-col items-center gap-2 py-16 text-center">
+                    <Users className="h-12 w-12 text-muted-foreground/40" />
+                    <h3 className="font-semibold text-cream">Aucun groupe pour le moment</h3>
+                    <p className="text-sm text-muted-foreground">Crée le premier groupe de musique.</p>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                    {groups.map((group) => {
+                        const members = groupMembers[group.id] || [];
+                        const upcomingCount = (groupReservations[group.id] || []).length;
+                        const isMyGroup = profile?.groups?.some(g => g.id === group.id);
 
-                {/* Create group form */}
-                {showCreateGroup && (
-                    <div className="card" style={{ marginBottom: 'var(--space-xl)', padding: 'var(--space-xl)' }}>
-                        <h3 style={{ marginBottom: 'var(--space-lg)' }}>🎵 Créer un nouveau groupe</h3>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
-                            <div className="form-group">
-                                <label className="form-label">Nom du groupe *</label>
-                                <input
-                                    type="text"
-                                    className="form-input"
-                                    placeholder="Ex: Les Amplifiés"
-                                    value={newGroupName}
-                                    onChange={(e) => setNewGroupName(e.target.value)}
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label">Style musical</label>
-                                <input
-                                    type="text"
-                                    className="form-input"
-                                    placeholder="Ex: Rock & Metal"
-                                    value={newGroupDesc}
-                                    onChange={(e) => setNewGroupDesc(e.target.value)}
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label">Couleur du groupe</label>
-                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                                    {GROUP_COLORS.map((c) => (
-                                        <button
-                                            key={c.color}
-                                            type="button"
-                                            onClick={() => setNewGroupColor(c.color)}
-                                            style={{
-                                                width: '40px',
-                                                height: '40px',
-                                                borderRadius: '10px',
-                                                backgroundColor: c.color,
-                                                border: newGroupColor === c.color ? '3px solid white' : '3px solid transparent',
-                                                cursor: 'pointer',
-                                                transition: 'transform 0.15s',
-                                                transform: newGroupColor === c.color ? 'scale(1.15)' : 'scale(1)',
-                                            }}
-                                            title={c.label}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-
-                            {createError && (
-                                <div className="form-error">⚠️ {createError}</div>
-                            )}
-
-                            <button
-                                className="btn btn-primary"
-                                onClick={handleCreateGroup}
-                                disabled={creatingGroup || !newGroupName.trim()}
-                                style={{ alignSelf: 'flex-start' }}
+                        return (
+                            <div
+                                key={group.id}
+                                onClick={() => router.push(`/groups/${group.id}`)}
+                                className="group relative cursor-pointer overflow-hidden rounded-lg border border-border bg-card p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg"
                             >
-                                {creatingGroup ? (
-                                    <span className="spinner"></span>
-                                ) : (
-                                    '✓ Créer et rejoindre le groupe'
-                                )}
-                            </button>
-                        </div>
-                    </div>
-                )}
+                                {/* Filet de couleur en haut */}
+                                <span
+                                    className="absolute inset-x-0 top-0 h-[3px]"
+                                    style={{ backgroundColor: group.color }}
+                                />
 
-                {loading ? (
-                    <div className="flex-center" style={{ padding: '80px 0' }}>
-                        <div className="spinner"></div>
-                    </div>
-                ) : groups.length === 0 ? (
-                    <div className="empty-state">
-                        <div className="empty-state-icon">🎸</div>
-                        <h3>Aucun groupe pour le moment</h3>
-                        <p>Crée le premier groupe de musique !</p>
-                    </div>
-                ) : (
-                    <div className="groups-grid">
-                        {groups.map((group) => {
-                            const members = groupMembers[group.id] || [];
-                            const upcomingRes = (groupReservations[group.id] || []).slice(0, 3);
-                            const isMyGroup = profile?.groups?.some(g => g.id === group.id);
-
-                            return (
-                                <div
-                                    key={group.id}
-                                    className="group-card"
-                                    style={{ '--group-color': group.color, cursor: 'pointer' }}
-                                    onClick={() => router.push(`/groups/${group.id}`)}
-                                >
-                                    <div className="group-card-header">
-                                        <div
-                                            className="group-card-color"
-                                            style={{ backgroundColor: group.color + '20', color: group.color }}
-                                        >
-                                            🎵
-                                        </div>
-                                        <div>
-                                            <div className="group-card-name">
-                                                {group.name}
-                                                {isMyGroup && (
-                                                    <span style={{
-                                                        marginLeft: '8px',
-                                                        fontSize: '0.7rem',
-                                                        background: group.color,
-                                                        color: 'white',
-                                                        padding: '2px 8px',
-                                                        borderRadius: '9999px',
-                                                        fontWeight: 600,
-                                                    }}>
-                                                        Mon groupe
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <div className="group-card-desc">{group.description}</div>
-                                        </div>
-                                    </div>
-
-                                    <div className="group-card-stats">
-                                        <div className="group-card-stat">
-                                            <span className="group-card-stat-value">{members.length}</span>
-                                            <span className="group-card-stat-label">Membres</span>
-                                        </div>
-                                        <div className="group-card-stat">
-                                            <span className="group-card-stat-value">
-                                                {(groupReservations[group.id] || []).length}
-                                            </span>
-                                            <span className="group-card-stat-label">Réservations à venir</span>
-                                        </div>
-                                    </div>
-
+                                <div className="flex items-center gap-3">
                                     <div
-                                        style={{ marginTop: 'var(--space-md)', paddingTop: 'var(--space-md)', borderTop: '1px solid var(--border-color)' }}
-                                        onClick={(e) => e.stopPropagation()}
+                                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md"
+                                        style={{ backgroundColor: group.color + '20', color: group.color }}
                                     >
-                                        <div className="flex gap-sm">
-                                            {isMyGroup ? (
-                                                <button
-                                                    className="btn btn-danger btn-sm"
-                                                    onClick={(e) => { e.stopPropagation(); handleLeaveGroup(group.id); }}
-                                                    style={{ flex: 1 }}
+                                        <Music className="h-5 w-5" />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <div className="flex items-center gap-2">
+                                            <span className="truncate font-display text-base font-bold text-cream">{group.name}</span>
+                                            {isMyGroup && (
+                                                <span
+                                                    className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold text-white"
+                                                    style={{ backgroundColor: group.color }}
                                                 >
-                                                    Quitter le groupe
-                                                </button>
-                                            ) : (
-                                                <button
-                                                    className="btn btn-secondary btn-sm"
-                                                    onClick={(e) => { e.stopPropagation(); handleJoinGroup(group.id); }}
-                                                    style={{ flex: 1 }}
-                                                >
-                                                    Rejoindre
-                                                </button>
-                                            )}
-
-                                            {isAdmin && (
-                                                <button
-                                                    className="btn btn-ghost btn-sm btn-icon text-danger"
-                                                    onClick={(e) => { e.stopPropagation(); handleDeleteGroup(group.id); }}
-                                                    title="Supprimer définitivement le groupe"
-                                                    style={{ width: '40px', padding: 0 }}
-                                                >
-                                                    🗑️
-                                                </button>
+                                                    Mon groupe
+                                                </span>
                                             )}
                                         </div>
+                                        {group.description && (
+                                            <div className="truncate text-sm text-muted-foreground">{group.description}</div>
+                                        )}
                                     </div>
                                 </div>
-                            );
-                        })}
-                    </div>
-                )}
 
+                                <div className="mt-4 flex gap-6 border-t border-border pt-4">
+                                    <div className="flex flex-col">
+                                        <span className="font-display text-lg font-bold text-cream">{members.length}</span>
+                                        <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Membres</span>
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="font-display text-lg font-bold text-cream">{upcomingCount}</span>
+                                        <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Résa à venir</span>
+                                    </div>
+                                </div>
+
+                                <div className="mt-4 flex gap-2" onClick={(e) => e.stopPropagation()}>
+                                    {isMyGroup ? (
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="flex-1 border-vu/40 text-vu hover:bg-vu/10 hover:text-vu"
+                                            onClick={(e) => { e.stopPropagation(); handleLeaveGroup(group.id); }}
+                                        >
+                                            Quitter le groupe
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            variant="secondary"
+                                            size="sm"
+                                            className="flex-1"
+                                            onClick={(e) => { e.stopPropagation(); handleJoinGroup(group.id); }}
+                                        >
+                                            Rejoindre
+                                        </Button>
+                                    )}
+
+                                    {isAdmin && (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon-sm"
+                                            className="text-muted-foreground hover:bg-vu/10 hover:text-vu"
+                                            onClick={(e) => { e.stopPropagation(); handleDeleteGroup(group.id); }}
+                                            title="Supprimer définitivement le groupe"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
         </AppShell>
     );
 }

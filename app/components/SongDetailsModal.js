@@ -3,6 +3,9 @@
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/app/contexts/AuthContext';
+import { Trash2, Pencil, ExternalLink, Music } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
+import { Button } from '@/app/components/ui/button';
 
 export default function SongDetailsModal({ song, onClose, onUpdated }) {
     const [isEditingLyrics, setIsEditingLyrics] = useState(false);
@@ -58,26 +61,34 @@ export default function SongDetailsModal({ song, onClose, onUpdated }) {
     const searchQuery = encodeURIComponent(`${song?.artist} ${song?.title}`);
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal modal-lg" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '800px' }}>
-                <div className="modal-header">
-                    <div>
-                        <h2 style={{ marginBottom: '4px' }}>{song?.title}</h2>
-                        <div className="text-muted">{song?.artist}</div>
-                    </div>
-                    <div className="flex gap-sm">
+        <Dialog open onOpenChange={(o) => !o && onClose()}>
+            <DialogContent className="border-border bg-card sm:max-w-3xl">
+                <DialogHeader className="pr-8">
+                    <div className="flex items-start justify-between gap-3">
+                        <div>
+                            <DialogTitle className="font-display uppercase tracking-tight text-cream">
+                                {song?.title}
+                            </DialogTitle>
+                            <div className="mt-0.5 font-mono text-xs text-muted-foreground">{song?.artist}</div>
+                        </div>
                         {isAdmin && (
-                            <button className="btn btn-ghost btn-sm btn-icon text-danger" onClick={handleDelete} title="Supprimer la chanson">🗑️</button>
+                            <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                onClick={handleDelete}
+                                title="Supprimer la chanson"
+                                className="text-vu hover:bg-vu/10 hover:text-vu"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
                         )}
-                        <button className="btn btn-ghost btn-sm btn-icon" onClick={onClose}>✕</button>
                     </div>
-                </div>
+                </DialogHeader>
 
-                <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xl)' }}>
-
-                    {/* Media Section */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 'var(--space-lg)' }}>
-                        <div className="card" style={{ padding: '0', overflow: 'hidden', backgroundColor: 'var(--bg-tertiary)' }}>
+                <div className="flex max-h-[75vh] flex-col gap-6 overflow-y-auto">
+                    {/* Media + partitions */}
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div className="overflow-hidden rounded-lg border border-border bg-panel">
                             {videoId ? (
                                 <iframe
                                     width="100%"
@@ -87,85 +98,101 @@ export default function SongDetailsModal({ song, onClose, onUpdated }) {
                                     frameBorder="0"
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                     allowFullScreen
-                                    style={{ display: 'block' }}
+                                    className="block"
                                 ></iframe>
                             ) : (
-                                <div className="flex-center" style={{ height: '250px', flexDirection: 'column', gap: 'var(--space-md)' }}>
-                                    <div style={{ fontSize: '2rem' }}>🎵</div>
-                                    <div className="text-muted">Aucun lien YouTube défini</div>
-                                    <a
-                                        href={`https://www.youtube.com/results?search_query=${searchQuery}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="btn btn-secondary btn-sm"
-                                    >
-                                        Rechercher sur YouTube ↗
-                                    </a>
+                                <div className="flex h-[250px] flex-col items-center justify-center gap-3 p-4 text-center">
+                                    <Music className="h-8 w-8 text-muted-foreground" />
+                                    <div className="text-sm text-muted-foreground">Aucun lien YouTube défini</div>
+                                    <Button asChild variant="outline" size="sm">
+                                        <a
+                                            href={`https://www.youtube.com/results?search_query=${searchQuery}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            Rechercher sur YouTube
+                                            <ExternalLink className="h-3.5 w-3.5" />
+                                        </a>
+                                    </Button>
                                 </div>
                             )}
                         </div>
 
-                        {/* Actions / Chords */}
-                        <div className="flex" style={{ flexDirection: 'column', gap: 'var(--space-md)' }}>
-                            <h3 style={{ fontSize: '1.1rem', margin: 0 }}>Partitions et Tablatures</h3>
-                            <a
-                                href={`https://www.songsterr.com/a/wa/bestMatchForQueryString?s=${encodeURIComponent(song?.title)}&a=${encodeURIComponent(song?.artist)}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="btn btn-secondary"
-                                style={{ justifyContent: 'center', backgroundColor: '#eab308', color: '#1a1a1a', border: 'none' }}
-                            >
-                                🎸 Ouvrir dans Songsterr ↗
-                            </a>
-                            <a
-                                href={`https://www.ultimate-guitar.com/search.php?search_type=title&value=${searchQuery}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="btn btn-secondary"
-                                style={{ justifyContent: 'center' }}
-                            >
-                                🎼 Ouvrir dans Ultimate Guitar ↗
-                            </a>
+                        <div className="flex flex-col gap-3">
+                            <h3 className="font-display text-base font-semibold uppercase tracking-tight text-cream">
+                                Partitions et tablatures
+                            </h3>
+                            <Button asChild className="bg-signal text-console hover:bg-signal/90">
+                                <a
+                                    href={`https://www.songsterr.com/a/wa/bestMatchForQueryString?s=${encodeURIComponent(song?.title)}&a=${encodeURIComponent(song?.artist)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    Ouvrir dans Songsterr
+                                    <ExternalLink className="h-4 w-4" />
+                                </a>
+                            </Button>
+                            <Button asChild variant="outline">
+                                <a
+                                    href={`https://www.ultimate-guitar.com/search.php?search_type=title&value=${searchQuery}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    Ouvrir dans Ultimate Guitar
+                                    <ExternalLink className="h-4 w-4" />
+                                </a>
+                            </Button>
                         </div>
                     </div>
 
-                    {/* Lyrics Section */}
+                    {/* Paroles */}
                     <div>
-                        <div className="flex" style={{ justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-md)' }}>
-                            <h3 style={{ fontSize: '1.1rem', margin: 0 }}>Paroles</h3>
+                        <div className="mb-3 flex items-center justify-between">
+                            <h3 className="font-display text-base font-semibold uppercase tracking-tight text-cream">
+                                Paroles
+                            </h3>
                             {!isEditingLyrics ? (
-                                <button className="btn btn-ghost btn-sm" onClick={() => setIsEditingLyrics(true)}>✏️ Modifier</button>
+                                <Button variant="ghost" size="sm" onClick={() => setIsEditingLyrics(true)}>
+                                    <Pencil className="h-3.5 w-3.5" />
+                                    Modifier
+                                </Button>
                             ) : (
-                                <div className="flex gap-sm">
-                                    <button className="btn btn-ghost btn-sm" onClick={() => { setIsEditingLyrics(false); setLyricsContent(song?.lyrics || ''); }}>Annuler</button>
-                                    <button className="btn btn-primary btn-sm" onClick={handleSaveLyrics} disabled={saving}>{saving ? '...' : 'Enregistrer'}</button>
+                                <div className="flex gap-2">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => { setIsEditingLyrics(false); setLyricsContent(song?.lyrics || ''); }}
+                                    >
+                                        Annuler
+                                    </Button>
+                                    <Button size="sm" onClick={handleSaveLyrics} disabled={saving}>
+                                        {saving ? '…' : 'Enregistrer'}
+                                    </Button>
                                 </div>
                             )}
                         </div>
 
-                        <div className="card" style={{ backgroundColor: 'var(--bg-tertiary)', padding: 'var(--space-lg)', maxHeight: '400px', overflowY: 'auto' }}>
+                        <div className="max-h-[400px] overflow-y-auto rounded-lg border border-border bg-panel p-4">
                             {isEditingLyrics ? (
                                 <textarea
-                                    className="form-input"
+                                    className="min-h-[300px] w-full resize-y rounded-md border border-input bg-transparent p-3 font-mono text-sm text-cream outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                                     value={lyricsContent}
                                     onChange={(e) => setLyricsContent(e.target.value)}
                                     rows={15}
-                                    style={{ fontFamily: 'monospace', minHeight: '300px' }}
                                 />
                             ) : lyricsContent ? (
-                                <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6', fontFamily: 'serif', fontSize: '1.05rem' }}>
+                                <div className="whitespace-pre-wrap text-[15px] leading-relaxed text-cream/90">
                                     {lyricsContent}
                                 </div>
                             ) : (
-                                <div className="text-muted italic flex-center" style={{ height: '100px' }}>
+                                <div className="flex h-[100px] items-center justify-center italic text-muted-foreground">
                                     Aucune parole disponible pour ce morceau.
                                 </div>
                             )}
                         </div>
                     </div>
-
                 </div>
-            </div>
-        </div>
+            </DialogContent>
+        </Dialog>
     );
 }

@@ -19,7 +19,7 @@ export default function Avatar({ name, size = 36, color = null }) {
 
     return (
         <div
-            className="avatar"
+            className="flex shrink-0 select-none items-center justify-center rounded-full font-bold text-white ring-2 ring-white/10"
             style={{
                 width: size,
                 height: size,

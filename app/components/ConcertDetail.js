@@ -4,6 +4,12 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import SetModal from './SetModal';
 import SongModal from './SongModal';
+import { cn } from '@/lib/utils';
+import {
+    ArrowLeft, CalendarDays, MapPin, Plus, ChevronUp, ChevronDown,
+    Pencil, Trash2, Loader2, Music, MessageSquare, Mic2,
+} from 'lucide-react';
+import { Button } from '@/app/components/ui/button';
 
 export default function ConcertDetail({ concert, onBack, onRefresh, groups, user, profile }) {
     const [sets, setSets] = useState([]);
@@ -145,63 +151,81 @@ export default function ConcertDetail({ concert, onBack, onRefresh, groups, user
     const concertDate = new Date(concert.date + 'T00:00:00');
     const formattedDate = `${dayNames[concertDate.getDay()]} ${concertDate.getDate()} ${monthNames[concertDate.getMonth()]} ${concertDate.getFullYear()}`;
 
+    const iconBtn = 'flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-panel hover:text-cream disabled:pointer-events-none disabled:opacity-30';
+
     return (
-        <div className="concert-detail-page">
-            {/* Header */}
-            <div className="concert-detail-header">
-                <button className="btn btn-ghost" onClick={onBack}>
-                    ← Retour
+        <div className="animate-in fade-in duration-300">
+            {/* En-tête */}
+            <div className="mb-6">
+                <button
+                    onClick={onBack}
+                    className="mb-3 flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-cream"
+                >
+                    <ArrowLeft className="h-4 w-4" />
+                    Retour
                 </button>
-                <div className="concert-detail-title-block">
-                    <h1 className="concert-detail-title">{concert.name}</h1>
-                    <div className="concert-detail-subtitle">
-                        <span>📅 {formattedDate}</span>
-                        {concert.location && <span>📍 {concert.location}</span>}
-                    </div>
-                    {concert.description && (
-                        <p className="concert-detail-description">{concert.description}</p>
+                <h1 className="font-display text-3xl font-extrabold uppercase tracking-tight text-cream">
+                    {concert.name}
+                </h1>
+                <div className="mt-2 flex flex-wrap gap-4 text-sm text-muted-foreground">
+                    <span className="flex items-center gap-1.5">
+                        <CalendarDays className="h-4 w-4 text-signal" />{formattedDate}
+                    </span>
+                    {concert.location && (
+                        <span className="flex items-center gap-1.5">
+                            <MapPin className="h-4 w-4 text-signal" />{concert.location}
+                        </span>
                     )}
                 </div>
+                {concert.description && (
+                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{concert.description}</p>
+                )}
             </div>
 
-            {/* Stats bar */}
-            <div className="concert-stats-bar">
-                <div className="concert-stat">
-                    <span className="concert-stat-value">{sets.length}</span>
-                    <span className="concert-stat-label">Passage{sets.length !== 1 ? 's' : ''}</span>
+            {/* Barre de stats */}
+            <div className="mb-5 flex gap-8 rounded-lg border border-border bg-card px-6 py-4">
+                <div className="flex flex-col items-center">
+                    <span className="font-display text-2xl font-extrabold text-signal">{sets.length}</span>
+                    <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                        Passage{sets.length !== 1 ? 's' : ''}
+                    </span>
                 </div>
-                <div className="concert-stat">
-                    <span className="concert-stat-value">{totalSongs}</span>
-                    <span className="concert-stat-label">Chanson{totalSongs !== 1 ? 's' : ''}</span>
+                <div className="flex flex-col items-center">
+                    <span className="font-display text-2xl font-extrabold text-signal">{totalSongs}</span>
+                    <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                        Chanson{totalSongs !== 1 ? 's' : ''}
+                    </span>
                 </div>
-                <div className="concert-stat">
-                    <span className="concert-stat-value">{totalDuration}</span>
-                    <span className="concert-stat-label">min totales</span>
+                <div className="flex flex-col items-center">
+                    <span className="font-display text-2xl font-extrabold text-signal">{totalDuration}</span>
+                    <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                        min totales
+                    </span>
                 </div>
             </div>
 
-            {/* Progress bar */}
+            {/* Barre de progression (bus de mix) */}
             {sets.length > 0 && (
-                <div className="concert-progress">
-                    <div className="concert-progress-bar">
-                        {sets.map((set, i) => {
+                <div className="mb-6">
+                    <div className="flex h-2 gap-0.5 overflow-hidden rounded-full bg-panel">
+                        {sets.map((set) => {
                             const width = totalDuration > 0
                                 ? (set.duration_minutes / totalDuration) * 100
                                 : 100 / sets.length;
                             return (
                                 <div
                                     key={set.id}
-                                    className="concert-progress-segment"
+                                    className="h-full rounded-full"
                                     style={{
                                         width: `${width}%`,
                                         backgroundColor: set.groups?.color || '#666',
                                     }}
                                     title={`${set.groups?.name}: ${set.duration_minutes} min`}
-                                ></div>
+                                />
                             );
                         })}
                     </div>
-                    <div className="concert-progress-labels">
+                    <div className="mt-1.5 flex flex-wrap justify-around gap-x-3 font-mono text-[11px] font-semibold">
                         {sets.map(set => (
                             <span key={set.id} style={{ color: set.groups?.color || '#666' }}>
                                 {set.groups?.name}
@@ -211,31 +235,32 @@ export default function ConcertDetail({ concert, onBack, onRefresh, groups, user
                 </div>
             )}
 
-            {/* Timeline */}
+            {/* Programme */}
             {loading ? (
-                <div className="flex-center" style={{ padding: '60px 0' }}>
-                    <div className="spinner"></div>
+                <div className="flex items-center justify-center py-16">
+                    <Loader2 className="h-6 w-6 animate-spin text-signal" />
                 </div>
             ) : (
-                <div className="concert-timeline">
-                    <div className="concert-timeline-header">
-                        <h2>Programme</h2>
-                        <button
-                            className="btn btn-primary btn-sm"
+                <div className="rounded-lg border border-border bg-card p-6">
+                    <div className="mb-6 flex items-center justify-between">
+                        <h2 className="font-display text-lg font-bold uppercase tracking-tight text-cream">Programme</h2>
+                        <Button
+                            size="sm"
                             onClick={() => { setEditSet(null); setShowSetModal(true); }}
                         >
-                            + Ajouter un passage
-                        </button>
+                            <Plus className="h-4 w-4" />
+                            Ajouter un passage
+                        </Button>
                     </div>
 
                     {sets.length === 0 ? (
-                        <div className="empty-state" style={{ padding: '40px' }}>
-                            <div className="empty-state-icon">🎸</div>
-                            <h3>Aucun passage prévu</h3>
-                            <p className="text-muted">Ajoute le premier groupe au programme !</p>
+                        <div className="flex flex-col items-center gap-2 py-12 text-center">
+                            <Mic2 className="h-10 w-10 text-muted-foreground/40" />
+                            <h3 className="font-semibold text-cream">Aucun passage prévu</h3>
+                            <p className="text-sm text-muted-foreground">Ajoute le premier groupe au programme.</p>
                         </div>
                     ) : (
-                        <div className="timeline-list">
+                        <div>
                             {sets.map((set, index) => {
                                 const setSongs = songs[set.id] || [];
                                 const isExpanded = expandedSet === set.id;
@@ -243,169 +268,181 @@ export default function ConcertDetail({ concert, onBack, onRefresh, groups, user
                                 const fillPercent = set.duration_minutes > 0
                                     ? Math.min(100, (songsDuration / 60 / set.duration_minutes) * 100)
                                     : 0;
+                                const color = set.groups?.color || '#666';
 
                                 return (
-                                    <div key={set.id} className="timeline-item">
-                                        <div className="timeline-connector">
+                                    <div key={set.id} className="flex gap-4">
+                                        {/* Connecteur */}
+                                        <div className="flex w-6 flex-col items-center pt-1.5">
                                             <div
-                                                className="timeline-dot"
-                                                style={{ backgroundColor: set.groups?.color || '#666' }}
-                                            ></div>
+                                                className="h-3.5 w-3.5 shrink-0 rounded-full"
+                                                style={{ backgroundColor: color, boxShadow: `0 0 8px ${color}66` }}
+                                            />
                                             {index < sets.length - 1 && (
-                                                <div className="timeline-line"></div>
+                                                <div className="mt-1 w-0.5 flex-1 bg-border" />
                                             )}
                                         </div>
 
-                                        <div className="timeline-content">
+                                        {/* Contenu */}
+                                        <div className="min-w-0 flex-1 pb-4">
                                             <div
-                                                className="timeline-card"
-                                                style={{ '--set-color': set.groups?.color || '#666' }}
+                                                className="cursor-pointer rounded-md border border-border bg-panel p-3 transition-colors hover:border-border/80"
+                                                style={{ borderLeftColor: color, borderLeftWidth: '3px' }}
                                                 onClick={() => setExpandedSet(isExpanded ? null : set.id)}
                                             >
-                                                <div className="timeline-card-header">
-                                                    <div className="timeline-card-info">
-                                                        <div className="timeline-card-time">
+                                                <div className="flex items-center justify-between gap-3">
+                                                    <div className="flex min-w-0 items-center gap-3">
+                                                        <div className="min-w-[50px] font-mono text-lg font-bold text-cream">
                                                             {formatTime(set.start_time)}
                                                         </div>
-                                                        <div>
-                                                            <div className="timeline-card-group">
+                                                        <div className="min-w-0">
+                                                            <div className="flex items-center gap-2 font-bold text-cream">
                                                                 <span
-                                                                    className="timeline-group-color"
-                                                                    style={{ backgroundColor: set.groups?.color || '#666' }}
-                                                                ></span>
+                                                                    className="h-2.5 w-2.5 shrink-0 rounded-full"
+                                                                    style={{ backgroundColor: color }}
+                                                                />
                                                                 {set.groups?.name || 'Groupe inconnu'}
                                                             </div>
-                                                            <div className="timeline-card-meta">
+                                                            <div className="mt-0.5 text-xs text-muted-foreground">
                                                                 {set.duration_minutes} min · {setSongs.length} chanson{setSongs.length !== 1 ? 's' : ''}
                                                                 {songsDuration > 0 && (
-                                                                    <span className="text-muted"> · {formatDuration(songsDuration)} de musique</span>
+                                                                    <span> · {formatDuration(songsDuration)} de musique</span>
                                                                 )}
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div className="timeline-card-actions">
+                                                    <div className="flex shrink-0 items-center gap-0.5">
                                                         <button
-                                                            className="btn btn-ghost btn-icon btn-sm"
+                                                            className={iconBtn}
                                                             onClick={(e) => { e.stopPropagation(); handleMoveSet(set.id, -1); }}
                                                             disabled={index === 0}
                                                             title="Monter"
-                                                        >↑</button>
+                                                        ><ChevronUp className="h-4 w-4" /></button>
                                                         <button
-                                                            className="btn btn-ghost btn-icon btn-sm"
+                                                            className={iconBtn}
                                                             onClick={(e) => { e.stopPropagation(); handleMoveSet(set.id, 1); }}
                                                             disabled={index === sets.length - 1}
                                                             title="Descendre"
-                                                        >↓</button>
+                                                        ><ChevronDown className="h-4 w-4" /></button>
                                                         <button
-                                                            className="btn btn-ghost btn-icon btn-sm"
+                                                            className={iconBtn}
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 setEditSet(set);
                                                                 setShowSetModal(true);
                                                             }}
                                                             title="Modifier"
-                                                        >✏️</button>
+                                                        ><Pencil className="h-3.5 w-3.5" /></button>
                                                         {isAdmin && (
                                                             <button
-                                                                className="btn btn-ghost btn-icon btn-sm text-danger"
+                                                                className={cn(iconBtn, 'hover:text-vu')}
                                                                 onClick={(e) => { e.stopPropagation(); handleDeleteSet(set.id); }}
                                                                 title="Supprimer"
-                                                            >🗑️</button>
+                                                            ><Trash2 className="h-3.5 w-3.5" /></button>
                                                         )}
-                                                        <span className={`timeline-expand-icon ${isExpanded ? 'expanded' : ''}`}>
-                                                            ▼
-                                                        </span>
+                                                        <ChevronDown
+                                                            className={cn(
+                                                                'ml-1 h-4 w-4 text-muted-foreground transition-transform',
+                                                                isExpanded && 'rotate-180'
+                                                            )}
+                                                        />
                                                     </div>
                                                 </div>
 
-                                                {/* Duration fill bar */}
+                                                {/* Barre de remplissage */}
                                                 {set.duration_minutes > 0 && (
-                                                    <div className="timeline-fill-bar">
+                                                    <div className="relative mt-4 h-1.5 rounded-full bg-white/[0.06]">
                                                         <div
-                                                            className="timeline-fill-bar-inner"
-                                                            style={{
-                                                                width: `${fillPercent}%`,
-                                                                backgroundColor: set.groups?.color || '#666',
-                                                            }}
-                                                        ></div>
-                                                        <span className="timeline-fill-label">
+                                                            className="h-full rounded-full opacity-60"
+                                                            style={{ width: `${fillPercent}%`, backgroundColor: color }}
+                                                        />
+                                                        <span className="absolute -top-4 right-0 font-mono text-[10px] text-muted-foreground">
                                                             {formatDuration(songsDuration)} / {set.duration_minutes}:00
                                                         </span>
                                                     </div>
                                                 )}
 
                                                 {set.notes && (
-                                                    <div className="timeline-card-notes">💬 {set.notes}</div>
+                                                    <div className="mt-3 flex items-start gap-1.5 border-t border-border pt-3 text-xs text-muted-foreground">
+                                                        <MessageSquare className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                                                        {set.notes}
+                                                    </div>
                                                 )}
                                             </div>
 
-                                            {/* Expanded setlist */}
+                                            {/* Setlist déployée */}
                                             {isExpanded && (
-                                                <div className="setlist-panel">
-                                                    <div className="setlist-header">
-                                                        <h4>Setlist</h4>
-                                                        <button
-                                                            className="btn btn-sm btn-secondary"
+                                                <div className="mt-2 overflow-hidden rounded-md border border-border bg-card animate-in fade-in slide-in-from-top-1 duration-200">
+                                                    <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                                                        <h4 className="font-display text-sm font-semibold uppercase tracking-tight text-cream">
+                                                            Setlist
+                                                        </h4>
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
                                                             onClick={() => {
                                                                 setActiveSongSetId(set.id);
                                                                 setEditSong(null);
                                                                 setShowSongModal(true);
                                                             }}
                                                         >
-                                                            + Chanson
-                                                        </button>
+                                                            <Plus className="h-3.5 w-3.5" />
+                                                            Chanson
+                                                        </Button>
                                                     </div>
 
                                                     {setSongs.length === 0 ? (
-                                                        <div className="text-muted text-center" style={{ padding: '20px', fontSize: '0.85rem' }}>
-                                                            Aucune chanson — ajoute la première !
+                                                        <div className="px-4 py-5 text-center text-sm text-muted-foreground">
+                                                            Aucune chanson — ajoute la première.
                                                         </div>
                                                     ) : (
-                                                        <div className="setlist-songs">
+                                                        <div className="py-1">
                                                             {setSongs.map((song, songIdx) => (
-                                                                <div key={song.id} className="song-row">
-                                                                    <div className="song-order">{songIdx + 1}</div>
-                                                                    <div className="song-info">
-                                                                        <div className="song-title">{song.title}</div>
+                                                                <div key={song.id} className="group flex items-center gap-3 px-4 py-2 transition-colors hover:bg-panel/60">
+                                                                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-panel font-mono text-[11px] font-bold text-muted-foreground">
+                                                                        {songIdx + 1}
+                                                                    </div>
+                                                                    <div className="min-w-0 flex-1">
+                                                                        <div className="text-sm font-semibold text-cream">{song.title}</div>
                                                                         {song.assignments && (
-                                                                            <div className="song-assignments">
-                                                                                🎵 {song.assignments}
+                                                                            <div className="mt-0.5 flex items-center gap-1 text-xs text-signal">
+                                                                                <Music className="h-3 w-3 shrink-0" />{song.assignments}
                                                                             </div>
                                                                         )}
                                                                         {song.notes && (
-                                                                            <div className="song-notes">
-                                                                                💬 {song.notes}
+                                                                            <div className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
+                                                                                <MessageSquare className="h-3 w-3 shrink-0" />{song.notes}
                                                                             </div>
                                                                         )}
                                                                     </div>
-                                                                    <div className="song-duration">
+                                                                    <div className="shrink-0 font-mono text-sm font-semibold text-muted-foreground">
                                                                         {formatDuration(song.duration_seconds)}
                                                                     </div>
-                                                                    <div className="song-actions">
+                                                                    <div className="flex shrink-0 gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
                                                                         <button
-                                                                            className="btn btn-ghost btn-icon btn-sm"
+                                                                            className={iconBtn}
                                                                             onClick={() => handleMoveSong(set.id, song.id, -1)}
                                                                             disabled={songIdx === 0}
-                                                                        >↑</button>
+                                                                        ><ChevronUp className="h-4 w-4" /></button>
                                                                         <button
-                                                                            className="btn btn-ghost btn-icon btn-sm"
+                                                                            className={iconBtn}
                                                                             onClick={() => handleMoveSong(set.id, song.id, 1)}
                                                                             disabled={songIdx === setSongs.length - 1}
-                                                                        >↓</button>
+                                                                        ><ChevronDown className="h-4 w-4" /></button>
                                                                         <button
-                                                                            className="btn btn-ghost btn-icon btn-sm"
+                                                                            className={iconBtn}
                                                                             onClick={() => {
                                                                                 setActiveSongSetId(set.id);
                                                                                 setEditSong(song);
                                                                                 setShowSongModal(true);
                                                                             }}
-                                                                        >✏️</button>
+                                                                        ><Pencil className="h-3.5 w-3.5" /></button>
                                                                         {isAdmin && (
                                                                             <button
-                                                                                className="btn btn-ghost btn-icon btn-sm text-danger"
+                                                                                className={cn(iconBtn, 'hover:text-vu')}
                                                                                 onClick={() => handleDeleteSong(song.id)}
                                                                                 title="Supprimer la chanson"
-                                                                            >🗑️</button>
+                                                                            ><Trash2 className="h-3.5 w-3.5" /></button>
                                                                         )}
                                                                     </div>
                                                                 </div>
@@ -423,7 +460,7 @@ export default function ConcertDetail({ concert, onBack, onRefresh, groups, user
                 </div>
             )}
 
-            {/* Modals */}
+            {/* Modales */}
             {showSetModal && (
                 <SetModal
                     concertId={concert.id}

@@ -1,7 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { AlertCircle } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
+import { Input } from '@/app/components/ui/input';
+import { Button } from '@/app/components/ui/button';
 
 export default function ConcertModal({ concert, onClose, onSaved, userId }) {
     const [name, setName] = useState(concert?.name || '');
@@ -50,68 +54,71 @@ export default function ConcertModal({ concert, onClose, onSaved, userId }) {
         }
     };
 
+    const labelClass = 'font-mono text-[11px] uppercase tracking-wider text-muted-foreground';
+
     return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal" onClick={(e) => e.stopPropagation()}>
-                <div className="modal-header">
-                    <h2>{concert ? 'Modifier le concert' : 'Nouveau concert'}</h2>
-                    <button className="btn btn-ghost btn-icon" onClick={onClose}>✕</button>
-                </div>
-                <form onSubmit={handleSubmit}>
-                    <div className="modal-body">
-                        <div className="form-group">
-                            <label className="form-label">Nom du concert *</label>
-                            <input
-                                type="text"
-                                className="form-input"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                placeholder="Ex: Concert de fin d'année"
-                                autoFocus
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label className="form-label">Date *</label>
-                            <input
-                                type="date"
-                                className="form-input"
-                                value={date}
-                                onChange={(e) => setDate(e.target.value)}
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label className="form-label">Lieu</label>
-                            <input
-                                type="text"
-                                className="form-input"
-                                value={location}
-                                onChange={(e) => setLocation(e.target.value)}
-                                placeholder="Ex: Amphi ISAE-Supmeca"
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label className="form-label">Description</label>
-                            <textarea
-                                className="form-input"
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
-                                placeholder="Infos supplémentaires..."
-                                rows={3}
-                                style={{ resize: 'vertical' }}
-                            />
-                        </div>
-                        {error && <div className="form-error">⚠️ {error}</div>}
+        <Dialog open onOpenChange={(o) => !o && onClose()}>
+            <DialogContent className="border-border bg-card sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle className="font-display uppercase tracking-tight text-cream">
+                        {concert ? 'Modifier le concert' : 'Nouveau concert'}
+                    </DialogTitle>
+                </DialogHeader>
+
+                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-1.5">
+                        <label className={labelClass}>Nom du concert *</label>
+                        <Input
+                            type="text"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            placeholder="Ex : Concert de fin d'année"
+                            autoFocus
+                        />
                     </div>
-                    <div className="modal-footer">
-                        <button type="button" className="btn btn-secondary" onClick={onClose}>
+                    <div className="flex flex-col gap-1.5">
+                        <label className={labelClass}>Date *</label>
+                        <Input
+                            type="date"
+                            value={date}
+                            onChange={(e) => setDate(e.target.value)}
+                        />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                        <label className={labelClass}>Lieu</label>
+                        <Input
+                            type="text"
+                            value={location}
+                            onChange={(e) => setLocation(e.target.value)}
+                            placeholder="Ex : Amphi ISAE-Supméca"
+                        />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                        <label className={labelClass}>Description</label>
+                        <textarea
+                            className="w-full resize-y rounded-md border border-input bg-transparent px-3 py-2 text-sm text-cream outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            placeholder="Infos supplémentaires…"
+                            rows={3}
+                        />
+                    </div>
+                    {error && (
+                        <div className="flex items-center gap-2 rounded-md border border-vu/30 bg-vu/10 px-3 py-2 text-sm text-vu">
+                            <AlertCircle className="h-4 w-4 shrink-0" />
+                            <span>{error}</span>
+                        </div>
+                    )}
+                    <div className="mt-2 flex justify-end gap-2">
+                        <Button type="button" variant="outline" onClick={onClose}>
                             Annuler
-                        </button>
-                        <button type="submit" className="btn btn-primary" disabled={saving}>
-                            {saving ? 'Enregistrement...' : (concert ? 'Modifier' : 'Créer')}
-                        </button>
+                        </Button>
+                        <Button type="submit" disabled={saving}>
+                            {saving ? 'Enregistrement…' : (concert ? 'Modifier' : 'Créer')}
+                        </Button>
                     </div>
                 </form>
-            </div>
-        </div>
+            </DialogContent>
+        </Dialog>
     );
 }
