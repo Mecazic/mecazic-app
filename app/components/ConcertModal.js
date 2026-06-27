@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { AlertCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
 import { Input } from '@/app/components/ui/input';
+import { DateField } from '@/app/components/ui/date-time-field';
 import { Button } from '@/app/components/ui/button';
 
 export default function ConcertModal({ concert, onClose, onSaved, userId }) {
@@ -78,10 +79,9 @@ export default function ConcertModal({ concert, onClose, onSaved, userId }) {
                     </div>
                     <div className="flex flex-col gap-1.5">
                         <label className={labelClass}>Date *</label>
-                        <Input
-                            type="date"
+                        <DateField
                             value={date}
-                            onChange={(e) => setDate(e.target.value)}
+                            onChange={setDate}
                         />
                     </div>
                     <div className="flex flex-col gap-1.5">

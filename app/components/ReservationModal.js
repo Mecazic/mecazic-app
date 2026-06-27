@@ -6,6 +6,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import { CalendarDays, AlertCircle, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
 import { Input } from '@/app/components/ui/input';
+import { DateField, TimeField } from '@/app/components/ui/date-time-field';
 import { Button } from '@/app/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -64,6 +65,11 @@ export default function ReservationModal({ slot, onClose, onCreated }) {
         }
         if (!selectedGroupId) {
             setError('Sélectionnez un groupe pour la réservation.');
+            return;
+        }
+
+        if (!activeDate || !activeTime) {
+            setError('Renseigne une date et une heure complètes.');
             return;
         }
 
@@ -171,21 +177,17 @@ export default function ReservationModal({ slot, onClose, onCreated }) {
                         <div className="flex gap-3">
                             <div className="flex flex-1 flex-col gap-1.5">
                                 <label className={labelClass}>Date</label>
-                                <Input
-                                    type="date"
+                                <DateField
                                     value={activeDate}
-                                    onChange={(e) => setCustomDate(e.target.value)}
-                                    min={new Date().toISOString().split('T')[0]}
+                                    onChange={setCustomDate}
                                     required
                                 />
                             </div>
                             <div className="flex flex-1 flex-col gap-1.5">
                                 <label className={labelClass}>Heure de début</label>
-                                <Input
-                                    type="time"
+                                <TimeField
                                     value={activeTime}
-                                    onChange={(e) => setCustomTime(e.target.value)}
-                                    step="1800"
+                                    onChange={setCustomTime}
                                     required
                                 />
                             </div>

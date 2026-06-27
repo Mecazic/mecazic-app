@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { AlertCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
 import { Input } from '@/app/components/ui/input';
+import { TimeField } from '@/app/components/ui/date-time-field';
 import { Button } from '@/app/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -101,10 +102,9 @@ export default function SetModal({ concertId, set, groups, currentOrder, onClose
 
                     <div className="flex flex-col gap-1.5">
                         <label className={labelClass}>Heure de début</label>
-                        <Input
-                            type="time"
+                        <TimeField
                             value={startTime}
-                            onChange={(e) => setStartTime(e.target.value)}
+                            onChange={setStartTime}
                         />
                     </div>
 
