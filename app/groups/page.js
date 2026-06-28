@@ -268,7 +268,7 @@ export default function GroupsPage() {
 
             {/* Formulaire de création */}
             {showCreateGroup && (
-                <div className="mb-8 rounded-lg border border-border bg-card p-6">
+                <div className="glass mb-8 rounded-xl p-6">
                     <h3 className="mb-5 font-display text-lg font-bold uppercase tracking-tight text-cream">
                         Créer un nouveau groupe
                     </h3>
@@ -354,7 +354,7 @@ export default function GroupsPage() {
                             <div
                                 key={group.id}
                                 onClick={() => router.push(`/groups/${group.id}`)}
-                                className="group relative cursor-pointer overflow-hidden rounded-lg border border-border bg-card p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg"
+                                className="group glass relative cursor-pointer overflow-hidden rounded-xl p-5 transition-all hover:-translate-y-0.5 hover:shadow-xl"
                             >
                                 {/* Filet de couleur en haut */}
                                 <span
@@ -364,10 +364,14 @@ export default function GroupsPage() {
 
                                 <div className="flex items-center gap-3">
                                     <div
-                                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md"
+                                        className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md"
                                         style={{ backgroundColor: group.color + '20', color: group.color }}
                                     >
-                                        <Music className="h-5 w-5" />
+                                        {group.avatar_url ? (
+                                            <img src={group.avatar_url} alt="" className="h-full w-full object-cover" />
+                                        ) : (
+                                            <Music className="h-5 w-5" />
+                                        )}
                                     </div>
                                     <div className="min-w-0">
                                         <div className="flex items-center gap-2">

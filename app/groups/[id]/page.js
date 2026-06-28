@@ -17,6 +17,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
 import { Input } from '@/app/components/ui/input';
 import { Button } from '@/app/components/ui/button';
+import { ImageUpload } from '@/app/components/ui/image-upload';
 
 const GROUP_COLORS = [
     { color: '#8B5CF6', label: 'Violet' },
@@ -47,6 +48,8 @@ export default function GroupPage() {
     const [editName, setEditName] = useState('');
     const [editDesc, setEditDesc] = useState('');
     const [editColor, setEditColor] = useState('#8B5CF6');
+    const [editAvatar, setEditAvatar] = useState('');
+    const [editBanner, setEditBanner] = useState('');
     const [editError, setEditError] = useState('');
     const [saving, setSaving] = useState(false);
 
@@ -139,6 +142,8 @@ export default function GroupPage() {
         setEditName(group.name);
         setEditDesc(group.description || '');
         setEditColor(group.color);
+        setEditAvatar(group.avatar_url || '');
+        setEditBanner(group.banner_url || '');
         setEditError('');
         setShowEdit(true);
     };
@@ -150,7 +155,7 @@ export default function GroupPage() {
         try {
             const { error } = await supabase
                 .from('groups')
-                .update({ name: editName.trim(), description: editDesc.trim(), color: editColor })
+                .update({ name: editName.trim(), description: editDesc.trim(), color: editColor, avatar_url: editAvatar || null, banner_url: editBanner || null })
                 .eq('id', id);
             if (error) throw error;
             await fetchGroups();
@@ -200,17 +205,27 @@ export default function GroupPage() {
             ) : (
                 <>
                     {/* Hero */}
-                    <div className="mb-6 overflow-hidden rounded-xl border border-border bg-card">
-                        <div
-                            className="h-28"
-                            style={{ background: `linear-gradient(120deg, ${group.color}55 0%, ${group.color}22 45%, var(--card) 100%)` }}
-                        />
+                    <div className="glass mb-6 overflow-hidden rounded-xl">
+                        <div className="relative h-28 overflow-hidden">
+                            {group.banner_url ? (
+                                <>
+                                    <img src={group.banner_url} alt="" className="h-full w-full object-cover" />
+                                    <div className="absolute inset-0" style={{ background: `linear-gradient(120deg, ${group.color}40, transparent 65%)` }} />
+                                </>
+                            ) : (
+                                <div className="h-full w-full" style={{ background: `linear-gradient(120deg, ${group.color}55 0%, ${group.color}22 45%, var(--card) 100%)` }} />
+                            )}
+                        </div>
                         <div className="-mt-11 flex flex-wrap items-end gap-4 px-6 pb-6">
                             <div
-                                className="flex h-20 w-20 shrink-0 items-center justify-center rounded-lg border shadow-md backdrop-blur"
+                                className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-lg border shadow-md backdrop-blur"
                                 style={{ backgroundColor: group.color + '30', color: group.color, borderColor: group.color + '60' }}
                             >
-                                <Music className="h-9 w-9" />
+                                {group.avatar_url ? (
+                                    <img src={group.avatar_url} alt="" className="h-full w-full object-cover" />
+                                ) : (
+                                    <Music className="h-9 w-9" />
+                                )}
                             </div>
                             <div className="min-w-[240px] flex-1">
                                 <div className="flex flex-wrap items-center gap-3">
@@ -274,7 +289,7 @@ export default function GroupPage() {
                     <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-3">
                         <div className="flex flex-col gap-5 lg:col-span-2">
                             {/* Prochaines réservations */}
-                            <div className="rounded-lg border border-border bg-card p-5">
+                            <div className="glass rounded-xl p-5">
                                 <div className="mb-4 flex items-center justify-between">
                                     <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-tight text-cream">
                                         <CalendarDays className="h-4 w-4 text-signal" />
@@ -310,7 +325,7 @@ export default function GroupPage() {
                             </div>
 
                             {/* Répertoire */}
-                            <div className="rounded-lg border border-border bg-card p-5">
+                            <div className="glass rounded-xl p-5">
                                 <div className="mb-4 flex items-center justify-between">
                                     <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-tight text-cream">
                                         <Guitar className="h-4 w-4 text-signal" />
@@ -375,7 +390,7 @@ export default function GroupPage() {
 
                         <div className="flex flex-col gap-5">
                             {/* Membres */}
-                            <div className="rounded-lg border border-border bg-card p-5">
+                            <div className="glass rounded-xl p-5">
                                 <div className="mb-4 flex items-center justify-between">
                                     <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-tight text-cream">
                                         <Users className="h-4 w-4 text-signal" />
@@ -409,13 +424,15 @@ export default function GroupPage() {
                     {/* Modale édition */}
                     {showEdit && (
                         <Dialog open onOpenChange={(o) => !o && setShowEdit(false)}>
-                            <DialogContent className="border-border bg-card sm:max-w-md">
+                            <DialogContent className="sm:max-w-md">
                                 <DialogHeader>
                                     <DialogTitle className="font-display uppercase tracking-tight text-cream">
                                         Modifier le groupe
                                     </DialogTitle>
                                 </DialogHeader>
                                 <div className="flex flex-col gap-4">
+                                    <ImageUpload groupId={id} kind="banner" value={editBanner} onChange={setEditBanner} label="Bannière" />
+                                    <ImageUpload groupId={id} kind="avatar" value={editAvatar} onChange={setEditAvatar} label="Photo du groupe" />
                                     <div className="flex flex-col gap-1.5">
                                         <label className={labelClass}>Nom du groupe *</label>
                                         <Input
