@@ -167,11 +167,11 @@ export default function Calendar() {
                     <p className="mt-0.5 font-mono text-xs uppercase tracking-wider text-muted-foreground">{weekLabel}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button variant="outline" size="icon-sm" onClick={() => navigateWeek(-1)} aria-label="Semaine précédente">
+                    <Button variant="ghost" size="icon-sm" className="glass-control hover:bg-transparent hover:brightness-110" onClick={() => navigateWeek(-1)} aria-label="Semaine précédente">
                         <ChevronLeft />
                     </Button>
-                    <Button variant="outline" size="sm" onClick={goToToday}>Aujourd&apos;hui</Button>
-                    <Button variant="outline" size="icon-sm" onClick={() => navigateWeek(1)} aria-label="Semaine suivante">
+                    <Button variant="ghost" size="sm" className="glass-control hover:bg-transparent hover:brightness-110" onClick={goToToday}>Aujourd&apos;hui</Button>
+                    <Button variant="ghost" size="icon-sm" className="glass-control hover:bg-transparent hover:brightness-110" onClick={() => navigateWeek(1)} aria-label="Semaine suivante">
                         <ChevronRight />
                     </Button>
                     <Button size="sm" className="ml-1" onClick={() => { setSelectedSlot(null); setShowModal(true); }}>

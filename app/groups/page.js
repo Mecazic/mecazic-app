@@ -356,10 +356,11 @@ export default function GroupsPage() {
                                 onClick={() => router.push(`/groups/${group.id}`)}
                                 className="group glass relative cursor-pointer overflow-hidden rounded-xl p-5 transition-all hover:-translate-y-0.5 hover:shadow-xl"
                             >
-                                {/* Filet de couleur en haut */}
+                                {/* Halo de la couleur du groupe, fondu au centre du verre */}
                                 <span
-                                    className="absolute inset-x-0 top-0 h-[3px]"
-                                    style={{ backgroundColor: group.color }}
+                                    aria-hidden="true"
+                                    className="pointer-events-none absolute inset-0 transition-opacity duration-300 group-hover:opacity-100 opacity-90"
+                                    style={{ background: `radial-gradient(115% 85% at 50% 50%, ${group.color}3d, ${group.color}12 46%, transparent 75%)` }}
                                 />
 
                                 <div className="flex items-center gap-3">
