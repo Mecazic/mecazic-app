@@ -75,9 +75,9 @@ export default function Topbar() {
         : '';
 
     return (
-        <div className="sticky top-0 z-30 -mx-4 mb-6 flex items-center gap-4 bg-console/85 px-4 py-3 backdrop-blur md:-mx-8 md:px-8">
-            <div className="relative w-full max-w-xl">
-                <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <div className="pointer-events-none sticky top-0 z-30 -mx-4 mb-6 flex items-center gap-4 bg-gradient-to-b from-console via-console/70 to-transparent px-4 pb-6 pt-4 md:-mx-8 md:px-8">
+            <div className="pointer-events-auto relative w-full max-w-xl">
+                <Search className="pointer-events-none absolute left-3.5 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <input
                     type="text"
                     placeholder="Rechercher un groupe, un concert, un morceau…"
@@ -86,11 +86,11 @@ export default function Topbar() {
                     onFocus={() => setOpen(true)}
                     onBlur={() => setTimeout(() => setOpen(false), 150)}
                     onKeyDown={(e) => { if (e.key === 'Escape') { setOpen(false); setQuery(''); } }}
-                    className="w-full rounded-full border border-border bg-card py-2 pl-10 pr-4 text-sm text-cream outline-none transition-colors placeholder:text-muted-foreground focus:border-signal focus:ring-2 focus:ring-signal/30"
+                    className="glass-float w-full rounded-full py-2.5 pl-10 pr-4 text-sm text-cream outline-none transition-all placeholder:text-muted-foreground focus:border-signal/60 focus:ring-2 focus:ring-signal/30"
                 />
 
                 {open && query.trim().length >= 2 && (
-                    <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 max-h-[420px] overflow-y-auto rounded-lg border border-border bg-popover shadow-2xl">
+                    <div className="glass-float absolute left-0 right-0 top-[calc(100%+10px)] z-50 max-h-[420px] overflow-y-auto rounded-xl">
                         {searching && !results && (
                             <div className="p-4 text-center text-sm text-muted-foreground">Recherche…</div>
                         )}

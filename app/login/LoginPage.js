@@ -54,8 +54,9 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-console px-4 py-10">
-            <div className="w-full max-w-sm">
+        <div className="relative flex min-h-screen items-center justify-center bg-console px-4 py-10">
+            <div className="console-fx pointer-events-none fixed inset-0" aria-hidden="true" />
+            <div className="relative z-10 w-full max-w-sm">
                 {/* Marque : témoin VU + nom */}
                 <div className="mb-8 flex flex-col items-center text-center">
                     <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-lg bg-panel ring-1 ring-border">
@@ -72,7 +73,7 @@ export default function LoginPage() {
                 </div>
 
                 {/* Console de connexion */}
-                <div className="rounded-xl border border-border bg-card p-6 shadow-lg sm:p-8">
+                <div className="glass rounded-2xl p-6 sm:p-8">
                     <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
                         {isRegister && (
                             <div className="flex flex-col gap-1.5">

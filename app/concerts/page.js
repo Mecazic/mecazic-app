@@ -108,7 +108,7 @@ export default function ConcertsPage() {
             <div
                 onClick={() => setSelectedConcert(concert)}
                 className={cn(
-                    'group relative flex cursor-pointer gap-4 rounded-lg border border-border bg-card p-5 transition-all hover:-translate-y-0.5 hover:border-border/80 hover:shadow-lg',
+                    'group glass relative flex cursor-pointer gap-4 rounded-xl p-5 transition-all hover:-translate-y-0.5 hover:shadow-xl',
                     past && 'opacity-60 hover:opacity-90'
                 )}
             >

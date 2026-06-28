@@ -18,6 +18,13 @@ export default function Calendar() {
     const [selectedSlot, setSelectedSlot] = useState(null);
     const [loading, setLoading] = useState(true);
     const [fetchError, setFetchError] = useState(null);
+    const [now, setNow] = useState(() => new Date());
+
+    // Horloge interne : fait avancer la tête de lecture (re-render toutes les 30 s)
+    useEffect(() => {
+        const t = setInterval(() => setNow(new Date()), 30000);
+        return () => clearInterval(t);
+    }, []);
 
     const hours = [];
     for (let h = 8; h <= 22; h++) {
@@ -180,10 +187,10 @@ export default function Calendar() {
             )}
 
             {/* Arrangement multipiste */}
-            <div className="overflow-hidden rounded-lg border border-border bg-card">
+            <div className="glass-deep animate-in fade-in slide-in-from-bottom-1 overflow-hidden rounded-xl duration-500">
                 <div className="grid grid-cols-[56px_repeat(7,minmax(0,1fr))]">
-                    {/* Coin */}
-                    <div className="border-b border-r border-border bg-panel" />
+                    {/* Coin de la réglette */}
+                    <div className="ruler border-b border-r border-border" />
                     {days.map((day, i) => (
                         <div key={i} className={cn('border-b border-border px-1 py-2 text-center', isToday(day) && 'bg-signal/5')}>
                             <div className={cn('font-mono text-[10px] uppercase tracking-[0.12em]', isToday(day) ? 'text-signal' : 'text-muted-foreground')}>
@@ -199,12 +206,14 @@ export default function Calendar() {
                     {/* Lignes horaires */}
                     {hours.map((hour) => (
                         <Fragment key={hour}>
-                            <div className="flex min-h-[60px] items-start justify-end border-b border-r border-border px-2 pt-1 font-mono text-[11px] text-muted-foreground">
+                            <div className="ruler flex min-h-[60px] items-start justify-end border-b border-border px-2 pt-1 font-mono text-[11px] tracking-tight text-muted-foreground">
                                 {String(hour).padStart(2, '0')}:00
                             </div>
                             {days.map((day, dayIdx) => {
                                 const cellReservations = getReservationsForCell(day, hour);
                                 const past = isPast(day, hour);
+                                const today = isToday(day);
+                                const playhead = now.getHours() === hour;
 
                                 return (
                                     <div
@@ -212,38 +221,63 @@ export default function Calendar() {
                                         onClick={() => !past && handleCellClick(day, hour)}
                                         className={cn(
                                             'relative min-h-[60px] border-b border-r border-border p-0.5 transition-colors last:border-r-0',
-                                            isToday(day) && 'bg-signal/[0.03]',
-                                            past ? 'opacity-40' : 'cursor-pointer hover:bg-signal/[0.06]'
+                                            hour % 2 === 0 && 'bg-cream/[0.014]',
+                                            today && 'bg-signal/[0.035]',
+                                            past ? 'opacity-40' : 'cursor-pointer hover:bg-signal/[0.07]'
                                         )}
                                     >
-                                        {isToday(day) && hour === new Date().getHours() && (
-                                            <div className="pointer-events-none absolute inset-x-0 z-20" style={{ top: `${new Date().getMinutes()}px` }}>
-                                                <div className="relative h-[2px] bg-vu shadow-[0_0_6px_rgba(232,67,31,0.7)]">
-                                                    <span className="absolute -left-px -top-1 h-0 w-0 border-y-[5px] border-l-[7px] border-y-transparent border-l-vu" />
+                                        {playhead && (
+                                            <div className="pointer-events-none absolute inset-x-0 z-20" style={{ top: `${now.getMinutes()}px` }}>
+                                                <div className={cn('relative', today ? 'h-[2px] bg-vu shadow-[0_0_8px_rgba(232,67,31,0.8)]' : 'h-px bg-vu/30')}>
+                                                    {today && (
+                                                        <>
+                                                            <span className="absolute -left-px -top-1 h-0 w-0 border-y-[5px] border-l-[7px] border-y-transparent border-l-vu" />
+                                                            <span className="absolute -top-[8px] right-1 rounded-[3px] bg-vu px-1 font-mono text-[9px] font-semibold leading-[14px] text-cream tabular-nums">
+                                                                {String(now.getHours()).padStart(2, '0')}:{String(now.getMinutes()).padStart(2, '0')}
+                                                            </span>
+                                                        </>
+                                                    )}
                                                 </div>
                                             </div>
                                         )}
-                                        {cellReservations.map((r) => (
-                                            isReservationStart(r, hour) && (
+                                        {cellReservations.map((r) => {
+                                            const color = r.groups?.color || '#FFAA2B';
+                                            // Créneaux courts (≤30 min ≈ 26 px) : trop bas pour afficher
+                                            // groupe + horaire → on les déploie au survol pour tout révéler.
+                                            const isShort = r.duration < 60;
+                                            return isReservationStart(r, hour) && (
                                                 <button
                                                     key={r.id}
                                                     onClick={(e) => handleReservationClick(e, r)}
-                                                    className="absolute inset-x-0.5 z-10 flex flex-col overflow-hidden rounded-sm border-l-[3px] px-1.5 py-1 text-left transition-all hover:z-30 hover:brightness-110 hover:ring-1 hover:ring-cream/20"
+                                                    className={cn(
+                                                        'group/clip absolute inset-x-0.5 z-10 flex flex-col overflow-hidden rounded-sm border-l-[3px] px-1.5 py-1 text-left transition-all hover:z-30 hover:brightness-110 hover:ring-1 hover:ring-cream/25',
+                                                        isShort && 'hover:h-[58px]! hover:overflow-visible hover:shadow-lg hover:shadow-black/40'
+                                                    )}
                                                     style={{
                                                         top: `${parseInt(r.start_time.split(':')[1]) + 2}px`,
                                                         height: `${(r.duration / 60) * 60 - 4}px`,
-                                                        borderLeftColor: r.groups?.color || '#FFAA2B',
-                                                        backgroundColor: `color-mix(in srgb, ${r.groups?.color || '#FFAA2B'} 22%, #16130F)`,
+                                                        borderLeftColor: color,
+                                                        backgroundColor: `color-mix(in srgb, ${color} 26%, #16130F)`,
+                                                        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)',
                                                     }}
                                                 >
-                                                    <span className="truncate text-[11px] font-semibold leading-tight text-cream">{r.title}</span>
+                                                    {/* Texture waveform en pied de clip */}
+                                                    <span
+                                                        className="clip-wave pointer-events-none absolute inset-x-0 bottom-0 h-2.5 opacity-45 transition-opacity group-hover/clip:opacity-70"
+                                                        style={{ color }}
+                                                        aria-hidden="true"
+                                                    />
+                                                    <span className="flex items-center gap-1 truncate text-[11px] font-semibold leading-tight text-cream">
+                                                        <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: color }} />
+                                                        <span className="truncate">{r.title}</span>
+                                                    </span>
                                                     <span className="truncate text-[10px] leading-tight text-cream/60">{r.groups?.name}</span>
-                                                    <span className="mt-auto font-mono text-[10px] text-cream/70">
+                                                    <span className="relative mt-auto font-mono text-[10px] text-cream/75 tabular-nums">
                                                         {r.start_time.slice(0, 5)}–{getEndTime(r.start_time, r.duration)}
                                                     </span>
                                                 </button>
-                                            )
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 );
                             })}

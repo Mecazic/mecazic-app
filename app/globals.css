@@ -132,3 +132,114 @@ html {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--muted-foreground);
 }
+
+/* ============================================================
+   MATIÈRE CONSOLE — profondeur, lueur, grain de rack
+   Couche transverse : tue la platitude sur toutes les surfaces.
+   ============================================================ */
+
+/* Fond du shell : halos de couleur (ambre + bleu/violet) pour que le verre
+   dépoli ait de quoi diffuser, + vignette + grain. Overlay fixe DERRIÈRE le
+   contenu (voir AppShell). */
+.console-fx {
+  background:
+    radial-gradient(62% 52% at 14% -6%, color-mix(in srgb, var(--signal) 24%, transparent), transparent 56%),
+    radial-gradient(58% 52% at 104% 104%, color-mix(in srgb, #4A9DD6 22%, transparent), transparent 56%),
+    radial-gradient(52% 46% at 90% 4%, color-mix(in srgb, #C77DFF 16%, transparent), transparent 58%),
+    radial-gradient(48% 44% at -4% 84%, color-mix(in srgb, #5BB98C 14%, transparent), transparent 58%),
+    radial-gradient(130% 130% at 50% 42%, transparent 46%, rgba(0, 0, 0, 0.5) 100%);
+}
+.console-fx::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.04;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+}
+
+/* Panneau de rack : décolle du fond (filet de lumière en haut + ombre portée). */
+.rack {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.045),
+    0 1px 2px rgba(0, 0, 0, 0.45),
+    0 20px 44px -26px rgba(0, 0, 0, 0.75);
+}
+
+/* Verre dépoli « visionOS » : frost lumineux qui flotte au-dessus du fond.
+   Tint blanc léger + gros flou + saturation = le verre prend la couleur des
+   halos derrière. Filet de lumière vif en haut pour l'arête d'acrylique. */
+.glass {
+  background-color: rgba(255, 255, 255, 0.05);
+  background-image: linear-gradient(157deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.012) 62%);
+  backdrop-filter: blur(32px) saturate(1.8);
+  -webkit-backdrop-filter: blur(32px) saturate(1.8);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.02),
+    0 24px 56px -22px rgba(0, 0, 0, 0.78);
+}
+
+/* Variante « flottante » intense : barre de recherche qui plane au-dessus du
+   contenu — plus de flou + de saturation, arête plus vive, ombre portée marquée
+   pour l'effet de lévitation. */
+.glass-float {
+  background-color: rgba(255, 255, 255, 0.08);
+  background-image: linear-gradient(157deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.02) 58%);
+  backdrop-filter: blur(44px) saturate(2.1);
+  -webkit-backdrop-filter: blur(44px) saturate(2.1);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.03),
+    0 16px 40px -12px rgba(0, 0, 0, 0.9);
+}
+
+/* Rail / grandes surfaces : frost un peu plus dense pour la tenue. */
+.glass-rail {
+  background-color: color-mix(in srgb, var(--charcoal) 52%, transparent);
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.01));
+  backdrop-filter: blur(34px) saturate(1.6);
+  -webkit-backdrop-filter: blur(34px) saturate(1.6);
+  box-shadow:
+    inset -1px 0 0 rgba(255, 255, 255, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Verre « profond » pour les surfaces denses (calendrier) : frost sombre qui
+   garde le contenu lisible tout en restant clairement vitré. */
+.glass-deep {
+  background-color: color-mix(in srgb, var(--console) 48%, transparent);
+  backdrop-filter: blur(26px) saturate(1.5);
+  -webkit-backdrop-filter: blur(26px) saturate(1.5);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 24px 56px -22px rgba(0, 0, 0, 0.78);
+}
+
+/* Élément « allumé » : halo ambre comme une LED de signal. */
+.signal-glow {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--signal) 38%, transparent),
+    0 0 16px -3px color-mix(in srgb, var(--signal) 55%, transparent);
+}
+
+/* Réglette timecode (colonne d'heures du multipiste) : scribble strip. */
+.ruler {
+  background: linear-gradient(90deg, var(--panel), color-mix(in srgb, var(--panel) 88%, #000));
+  box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.4);
+}
+
+/* Texture waveform pour les clips de réservation (barres audio). */
+.clip-wave {
+  background-image: repeating-linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--cream) 22%, transparent) 0 1px,
+    transparent 1px 5px
+  );
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}

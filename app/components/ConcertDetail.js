@@ -183,7 +183,7 @@ export default function ConcertDetail({ concert, onBack, onRefresh, groups, user
             </div>
 
             {/* Barre de stats */}
-            <div className="mb-5 flex gap-8 rounded-lg border border-border bg-card px-6 py-4">
+            <div className="glass mb-5 flex gap-8 rounded-xl px-6 py-4">
                 <div className="flex flex-col items-center">
                     <span className="font-display text-2xl font-extrabold text-signal">{sets.length}</span>
                     <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -241,7 +241,7 @@ export default function ConcertDetail({ concert, onBack, onRefresh, groups, user
                     <Loader2 className="h-6 w-6 animate-spin text-signal" />
                 </div>
             ) : (
-                <div className="rounded-lg border border-border bg-card p-6">
+                <div className="glass rounded-xl p-6">
                     <div className="mb-6 flex items-center justify-between">
                         <h2 className="font-display text-lg font-bold uppercase tracking-tight text-cream">Programme</h2>
                         <Button

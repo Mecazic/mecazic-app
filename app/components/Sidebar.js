@@ -39,7 +39,7 @@ export default function Sidebar() {
     return (
         <>
             {/* Sidebar console (desktop) */}
-            <aside className="fixed left-0 top-0 z-40 hidden h-screen w-[260px] flex-col border-r border-border bg-charcoal p-5 md:flex">
+            <aside className="glass-rail fixed left-0 top-0 z-40 hidden h-screen w-[260px] flex-col border-r border-white/[0.06] p-5 md:flex">
                 {/* Marque : témoin VU + nom */}
                 <div className="mb-6 flex items-center gap-3 border-b border-border pb-5">
                     <span className="flex h-9 w-9 items-center justify-center rounded-md bg-panel ring-1 ring-border">
@@ -128,7 +128,7 @@ export default function Sidebar() {
             </aside>
 
             {/* Barre de navigation mobile */}
-            <nav className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t border-border bg-charcoal/95 px-2 py-2 backdrop-blur md:hidden">
+            <nav className="glass-rail fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t border-white/[0.06] px-2 py-2 md:hidden">
                 {navLinks.map(({ href, icon: Icon, label }) => {
                     const active = pathname === href;
                     return (
