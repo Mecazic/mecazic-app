@@ -50,8 +50,8 @@ export default function Sidebar() {
                         </span>
                     </span>
                     <div className="leading-tight">
-                        <div className="font-display text-lg font-extrabold uppercase tracking-tight text-cream">Mecazic</div>
-                        <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Salle &amp; scène</div>
+                        <div className="font-caps text-lg font-extrabold uppercase tracking-normal text-cream">Mecazic</div>
+                        <div className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Salle &amp; scène</div>
                     </div>
                 </div>
 
@@ -83,7 +83,7 @@ export default function Sidebar() {
                 {/* Prochains concerts */}
                 {upcomingConcerts.length > 0 && (
                     <div className="border-t border-border pt-4">
-                        <div className="mb-2 px-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                        <div className="mb-2 px-1 text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
                             En scène
                         </div>
                         <div className="flex flex-col gap-1">
@@ -92,12 +92,12 @@ export default function Sidebar() {
                                 return (
                                     <Link key={c.id} href="/concerts" className="flex items-center gap-3 rounded-md px-1.5 py-1.5 transition-colors hover:bg-panel">
                                         <span className="flex h-10 w-9 flex-col items-center justify-center rounded-sm border border-border bg-panel">
-                                            <span className="font-display text-sm font-bold leading-none text-cream">{d.getDate()}</span>
-                                            <span className="font-mono text-[9px] font-semibold tracking-wider text-signal">{monthNames[d.getMonth()]}</span>
+                                            <span className="font-mono text-sm font-bold leading-none text-cream">{d.getDate()}</span>
+                                            <span className="text-[9px] font-semibold tracking-wider text-signal">{monthNames[d.getMonth()]}</span>
                                         </span>
                                         <span className="flex min-w-0 flex-col">
                                             <span className="truncate text-[13px] font-semibold text-cream">{c.name}</span>
-                                            {c.location && <span className="truncate font-mono text-[11px] text-muted-foreground">{c.location}</span>}
+                                            {c.location && <span className="truncate text-[11px] text-muted-foreground">{c.location}</span>}
                                         </span>
                                     </Link>
                                 );
@@ -112,7 +112,7 @@ export default function Sidebar() {
                         <Avatar name={profile.username} size={36} />
                         <div className="min-w-0 flex-1">
                             <div className="truncate text-sm font-semibold text-cream">{profile.username}</div>
-                            <div className="truncate font-mono text-[11px] text-muted-foreground">
+                            <div className="truncate text-[11px] text-muted-foreground">
                                 {profile.groups?.length > 0 ? profile.groups.map((g) => g.name).join(', ') : 'Sans groupe'}
                             </div>
                         </div>

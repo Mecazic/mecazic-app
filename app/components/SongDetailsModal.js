@@ -6,8 +6,9 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import { Trash2, Pencil, ExternalLink, Music } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
 import { Button } from '@/app/components/ui/button';
+import ChordSheet from '@/app/components/ChordSheet';
 
-export default function SongDetailsModal({ song, onClose, onUpdated }) {
+export default function SongDetailsModal({ song, onClose, onUpdated, canEdit }) {
     const [isEditingLyrics, setIsEditingLyrics] = useState(false);
     const [lyricsContent, setLyricsContent] = useState(song?.lyrics || '');
     const [saving, setSaving] = useState(false);
@@ -66,12 +67,12 @@ export default function SongDetailsModal({ song, onClose, onUpdated }) {
                 <DialogHeader className="pr-8">
                     <div className="flex items-start justify-between gap-3">
                         <div>
-                            <DialogTitle className="font-display uppercase tracking-tight text-cream">
+                            <DialogTitle className="font-caps uppercase tracking-normal text-cream">
                                 {song?.title}
                             </DialogTitle>
-                            <div className="mt-0.5 font-mono text-xs text-muted-foreground">{song?.artist}</div>
+                            <div className="mt-0.5 font-medium text-xs text-muted-foreground">{song?.artist}</div>
                         </div>
-                        {isAdmin && (
+                        {(canEdit || isAdmin) && (
                             <Button
                                 variant="ghost"
                                 size="icon-sm"
@@ -119,7 +120,7 @@ export default function SongDetailsModal({ song, onClose, onUpdated }) {
                         </div>
 
                         <div className="flex flex-col gap-3">
-                            <h3 className="font-display text-base font-semibold uppercase tracking-tight text-cream">
+                            <h3 className="font-display text-base font-semibold tracking-normal text-cream">
                                 Partitions et tablatures
                             </h3>
                             <Button asChild className="bg-signal text-console hover:bg-signal/90">
@@ -148,8 +149,8 @@ export default function SongDetailsModal({ song, onClose, onUpdated }) {
                     {/* Paroles */}
                     <div>
                         <div className="mb-3 flex items-center justify-between">
-                            <h3 className="font-display text-base font-semibold uppercase tracking-tight text-cream">
-                                Paroles
+                            <h3 className="font-display text-base font-semibold tracking-normal text-cream">
+                                Paroles &amp; accords
                             </h3>
                             {!isEditingLyrics ? (
                                 <Button variant="ghost" size="sm" onClick={() => setIsEditingLyrics(true)}>
@@ -172,24 +173,26 @@ export default function SongDetailsModal({ song, onClose, onUpdated }) {
                             )}
                         </div>
 
-                        <div className="max-h-[400px] overflow-y-auto rounded-lg border border-border bg-panel p-4">
-                            {isEditingLyrics ? (
+                        {isEditingLyrics ? (
+                            <div className="rounded-lg border border-border bg-panel p-4">
+                                <p className="mb-2 font-medium text-[11px] leading-relaxed text-muted-foreground">
+                                    Astuce : place les accords entre crochets — <span className="text-signal">[Am]</span>Twinkle <span className="text-signal">[C]</span>twinkle <span className="text-signal">[G]</span>little star
+                                </p>
                                 <textarea
                                     className="min-h-[300px] w-full resize-y rounded-md border border-input bg-transparent p-3 font-mono text-sm text-cream outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                                     value={lyricsContent}
                                     onChange={(e) => setLyricsContent(e.target.value)}
                                     rows={15}
+                                    placeholder={'[Am]Paroles avec [C]accords entre [G]crochets…'}
                                 />
-                            ) : lyricsContent ? (
-                                <div className="whitespace-pre-wrap text-[15px] leading-relaxed text-cream/90">
-                                    {lyricsContent}
-                                </div>
-                            ) : (
-                                <div className="flex h-[100px] items-center justify-center italic text-muted-foreground">
-                                    Aucune parole disponible pour ce morceau.
-                                </div>
-                            )}
-                        </div>
+                            </div>
+                        ) : lyricsContent ? (
+                            <ChordSheet source={lyricsContent} />
+                        ) : (
+                            <div className="flex h-[100px] items-center justify-center rounded-lg border border-border bg-panel italic text-muted-foreground">
+                                Aucune parole disponible pour ce morceau.
+                            </div>
+                        )}
                     </div>
                 </div>
             </DialogContent>

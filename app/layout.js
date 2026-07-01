@@ -1,6 +1,8 @@
 import './globals.css';
 
 import { AuthProvider } from './contexts/AuthContext';
+import { PlayerProvider } from './contexts/PlayerContext';
+import MiniPlayer from './components/MiniPlayer';
 
 export const metadata = {
   title: 'Mecazic - Réservation salle de musique | ISAE-Supmeca',
@@ -18,7 +20,10 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         <AuthProvider>
-          {children}
+          <PlayerProvider>
+            {children}
+            <MiniPlayer />
+          </PlayerProvider>
         </AuthProvider>
       </body>
     </html>

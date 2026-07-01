@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/app/contexts/AuthContext';
@@ -38,6 +38,44 @@ export default function GroupsPage() {
     const [creatingGroup, setCreatingGroup] = useState(false);
     const [createError, setCreateError] = useState('');
     const [createSuccess, setCreateSuccess] = useState('');
+
+    // Halo « spotlight » des cartes de groupe : le fond de couleur suit un peu le
+    // curseur. On écrit --mx/--my directement sur la carte survolée (aucun re-render
+    // React), throttlé en rAF ; l'amortissement spatial (0.42) fait que le halo se
+    // déplace moins que la souris, le lissage temporel vient de la transition CSS.
+    const rafRef = useRef(0);
+
+    const handleHaloMove = useCallback((e) => {
+        if (rafRef.current) return; // au plus une frame en vol
+        if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+        const card = e.currentTarget; // la carte survolée (suivi par carte garanti)
+        const halo = card.querySelector('[data-halo]'); // on pose la var SUR le span (set+transition+usage sur le même noeud)
+        if (!halo) return;
+        const rect = card.getBoundingClientRect();
+        const px = ((e.clientX - rect.left) / rect.width) * 100;
+        const py = ((e.clientY - rect.top) / rect.height) * 100;
+        const DAMP = 0.42; // « un peu » : le halo ne parcourt que 42 % de l'écart au centre
+        const mx = 50 + (Math.max(0, Math.min(100, px)) - 50) * DAMP;
+        const my = 50 + (Math.max(0, Math.min(100, py)) - 50) * DAMP;
+        rafRef.current = requestAnimationFrame(() => {
+            rafRef.current = 0;
+            halo.style.setProperty('--mx', mx.toFixed(2) + '%');
+            halo.style.setProperty('--my', my.toFixed(2) + '%');
+        });
+    }, []);
+
+    const handleHaloLeave = useCallback((e) => {
+        if (rafRef.current) {
+            cancelAnimationFrame(rafRef.current);
+            rafRef.current = 0;
+        }
+        const halo = e.currentTarget.querySelector('[data-halo]');
+        if (halo) {
+            // retour au centre : la transition sur --mx/--my recentre en douceur
+            halo.style.setProperty('--mx', '50%');
+            halo.style.setProperty('--my', '50%');
+        }
+    }, []);
 
     useEffect(() => {
         if (user) {
@@ -220,19 +258,19 @@ export default function GroupsPage() {
         return (
             <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-console">
                 <Loader2 className="h-8 w-8 animate-spin text-signal" />
-                <p className="font-mono text-sm text-muted-foreground">Chargement…</p>
+                <p className="text-sm text-muted-foreground">Chargement…</p>
             </div>
         );
     }
 
     if (!user) return <LoginPage />;
 
-    const labelClass = 'font-mono text-[11px] uppercase tracking-wider text-muted-foreground';
+    const labelClass = 'text-[11px] font-medium uppercase tracking-wider text-muted-foreground';
 
     return (
         <AppShell>
             <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-                <h1 className="flex items-center gap-2.5 font-display text-2xl font-extrabold uppercase tracking-tight text-cream">
+                <h1 className="flex items-center gap-2.5 font-caps text-2xl font-extrabold uppercase tracking-normal text-cream">
                     <Users className="h-6 w-6 text-signal" />
                     Groupes de musique
                 </h1>
@@ -269,7 +307,7 @@ export default function GroupsPage() {
             {/* Formulaire de création */}
             {showCreateGroup && (
                 <div className="glass mb-8 rounded-xl p-6">
-                    <h3 className="mb-5 font-display text-lg font-bold uppercase tracking-tight text-cream">
+                    <h3 className="mb-5 font-display text-lg font-bold tracking-normal text-cream">
                         Créer un nouveau groupe
                     </h3>
 
@@ -354,13 +392,18 @@ export default function GroupsPage() {
                             <div
                                 key={group.id}
                                 onClick={() => router.push(`/groups/${group.id}`)}
+                                onMouseMove={handleHaloMove}
+                                onMouseLeave={handleHaloLeave}
                                 className="group glass relative cursor-pointer overflow-hidden rounded-xl p-5 transition-all hover:-translate-y-0.5 hover:shadow-xl"
                             >
-                                {/* Halo de la couleur du groupe, fondu au centre du verre */}
+                                {/* Halo de la couleur du groupe : son centre suit un peu le curseur
+                                    via --mx/--my posées sur ce span (défaut 50%/50% via @property →
+                                    centré au repos, tactile & SSR OK ; fallback 50% si @property absent). */}
                                 <span
+                                    data-halo
                                     aria-hidden="true"
-                                    className="pointer-events-none absolute inset-0 transition-opacity duration-300 group-hover:opacity-100 opacity-90"
-                                    style={{ background: `radial-gradient(115% 85% at 50% 50%, ${group.color}3d, ${group.color}12 46%, transparent 75%)` }}
+                                    className="halo-spot pointer-events-none absolute inset-0 opacity-60 transition-opacity duration-300 group-hover:opacity-100"
+                                    style={{ background: `radial-gradient(120% 90% at var(--mx, 50%) var(--my, 50%), ${group.color}3d, ${group.color}12 46%, transparent 75%)` }}
                                 />
 
                                 <div className="flex items-center gap-3">
@@ -394,12 +437,12 @@ export default function GroupsPage() {
 
                                 <div className="mt-4 flex gap-6 border-t border-border pt-4">
                                     <div className="flex flex-col">
-                                        <span className="font-display text-lg font-bold text-cream">{members.length}</span>
-                                        <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Membres</span>
+                                        <span className="font-mono text-lg font-bold text-cream">{members.length}</span>
+                                        <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Membres</span>
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="font-display text-lg font-bold text-cream">{upcomingCount}</span>
-                                        <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Résa à venir</span>
+                                        <span className="font-mono text-lg font-bold text-cream">{upcomingCount}</span>
+                                        <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Résa à venir</span>
                                     </div>
                                 </div>
 

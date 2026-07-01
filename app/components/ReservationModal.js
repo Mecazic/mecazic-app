@@ -150,13 +150,13 @@ export default function ReservationModal({ slot, onClose, onCreated }) {
     const dateObj = new Date(activeDate + 'T00:00:00');
     const dateLabel = `${dayNames[dateObj.getDay()]} ${dateObj.getDate()} ${monthNames[dateObj.getMonth()]}`;
 
-    const labelClass = 'font-mono text-[11px] uppercase tracking-wider text-muted-foreground';
+    const labelClass = 'text-[11px] font-medium uppercase tracking-wider text-muted-foreground';
 
     return (
         <Dialog open onOpenChange={(o) => !o && onClose()}>
             <DialogContent className="border-border bg-card sm:max-w-md">
                 <DialogHeader>
-                    <DialogTitle className="font-display uppercase tracking-tight text-cream">
+                    <DialogTitle className="font-caps uppercase tracking-normal text-cream">
                         Nouvelle réservation
                     </DialogTitle>
                 </DialogHeader>

@@ -80,7 +80,7 @@ export default function ConcertsPage() {
         return (
             <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-console">
                 <Loader2 className="h-8 w-8 animate-spin text-signal" />
-                <p className="font-mono text-sm text-muted-foreground">Chargement…</p>
+                <p className="text-sm text-muted-foreground">Chargement…</p>
             </div>
         );
     }
@@ -117,10 +117,10 @@ export default function ConcertsPage() {
                     'flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-md border',
                     past ? 'border-border bg-panel' : 'border-signal/30 bg-signal/15'
                 )}>
-                    <span className={cn('font-display text-xl font-extrabold leading-none', past ? 'text-cream' : 'text-signal')}>
+                    <span className={cn('font-mono text-xl font-extrabold leading-none', past ? 'text-cream' : 'text-signal')}>
                         {d.getDate()}
                     </span>
-                    <span className="mt-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                         {monthNames[d.getMonth()]}
                     </span>
                 </div>
@@ -190,7 +190,7 @@ export default function ConcertsPage() {
             ) : (
                 <>
                     <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-                        <h1 className="flex items-center gap-2.5 font-display text-2xl font-extrabold uppercase tracking-tight text-cream">
+                        <h1 className="flex items-center gap-2.5 font-caps text-2xl font-extrabold uppercase tracking-normal text-cream">
                             <Mic2 className="h-6 w-6 text-signal" />
                             Concerts
                         </h1>
@@ -214,7 +214,7 @@ export default function ConcertsPage() {
                         <>
                             {upcomingConcerts.length > 0 && (
                                 <div className="mb-10">
-                                    <h2 className="mb-4 flex items-center gap-2 font-display text-sm font-bold uppercase tracking-wider text-cream">
+                                    <h2 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-cream">
                                         <span className="h-2.5 w-2.5 rounded-full bg-chart-3 shadow-[0_0_8px_var(--chart-3)]" />
                                         À venir
                                     </h2>
@@ -228,7 +228,7 @@ export default function ConcertsPage() {
 
                             {pastConcerts.length > 0 && (
                                 <div className="mb-10">
-                                    <h2 className="mb-4 flex items-center gap-2 font-display text-sm font-bold uppercase tracking-wider text-cream">
+                                    <h2 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-cream">
                                         <span className="h-2.5 w-2.5 rounded-full bg-muted-foreground" />
                                         Passés
                                     </h2>

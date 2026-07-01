@@ -19,6 +19,7 @@ export default function Calendar() {
     const [loading, setLoading] = useState(true);
     const [fetchError, setFetchError] = useState(null);
     const [now, setNow] = useState(() => new Date());
+    const [slideDir, setSlideDir] = useState(null);
 
     // Horloge interne : fait avancer la tête de lecture (re-render toutes les 30 s)
     useEffect(() => {
@@ -86,14 +87,20 @@ export default function Calendar() {
         return `${year}-${month}-${day}`;
     }
 
-    function navigateWeek(direction) {
-        const newStart = new Date(currentWeekStart);
-        newStart.setDate(newStart.getDate() + direction * 7);
+    // Change de semaine en mémorisant le sens (pour l'animation de glissement).
+    function changeWeek(newStart) {
+        setSlideDir(newStart > currentWeekStart ? 'right' : newStart < currentWeekStart ? 'left' : null);
         setCurrentWeekStart(newStart);
     }
 
+    function navigateWeek(direction) {
+        const newStart = new Date(currentWeekStart);
+        newStart.setDate(newStart.getDate() + direction * 7);
+        changeWeek(newStart);
+    }
+
     function goToToday() {
-        setCurrentWeekStart(getMonday(new Date()));
+        changeWeek(getMonday(new Date()));
     }
 
     function handleCellClick(day, hour) {
@@ -163,15 +170,15 @@ export default function Calendar() {
             {/* En-tête : transport */}
             <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
                 <div>
-                    <h1 className="font-display text-2xl font-extrabold uppercase tracking-tight text-cream">Salle de répét</h1>
-                    <p className="mt-0.5 font-mono text-xs uppercase tracking-wider text-muted-foreground">{weekLabel}</p>
+                    <h1 className="font-caps text-2xl font-extrabold uppercase tracking-normal text-cream">Salle de répét</h1>
+                    <p className="mt-0.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">{weekLabel}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon-sm" className="glass-control hover:bg-transparent hover:brightness-110" onClick={() => navigateWeek(-1)} aria-label="Semaine précédente">
+                    <Button variant="ghost" size="icon-sm" className="glass-control transition hover:bg-transparent hover:brightness-110 active:scale-[0.9]" onClick={() => navigateWeek(-1)} aria-label="Semaine précédente">
                         <ChevronLeft />
                     </Button>
-                    <Button variant="ghost" size="sm" className="glass-control hover:bg-transparent hover:brightness-110" onClick={goToToday}>Aujourd&apos;hui</Button>
-                    <Button variant="ghost" size="icon-sm" className="glass-control hover:bg-transparent hover:brightness-110" onClick={() => navigateWeek(1)} aria-label="Semaine suivante">
+                    <Button variant="ghost" size="sm" className="glass-control transition hover:bg-transparent hover:brightness-110 active:scale-[0.95]" onClick={goToToday}>Aujourd&apos;hui</Button>
+                    <Button variant="ghost" size="icon-sm" className="glass-control transition hover:bg-transparent hover:brightness-110 active:scale-[0.9]" onClick={() => navigateWeek(1)} aria-label="Semaine suivante">
                         <ChevronRight />
                     </Button>
                     <Button size="sm" className="ml-1" onClick={() => { setSelectedSlot(null); setShowModal(true); }}>
@@ -188,15 +195,24 @@ export default function Calendar() {
 
             {/* Arrangement multipiste */}
             <div className="glass-deep animate-in fade-in slide-in-from-bottom-1 overflow-hidden rounded-xl duration-500">
-                <div className="grid grid-cols-[56px_repeat(7,minmax(0,1fr))]">
+                {/* La clé sur la semaine force le remontage → rejoue le glissement
+                    directionnel à chaque changement de semaine (scrub multipiste). */}
+                <div
+                    key={formatDate(currentWeekStart)}
+                    className={cn(
+                        'grid grid-cols-[56px_repeat(7,minmax(0,1fr))] animate-in fade-in duration-[250ms] ease-out',
+                        slideDir === 'right' && 'slide-in-from-right-12',
+                        slideDir === 'left' && 'slide-in-from-left-12'
+                    )}
+                >
                     {/* Coin de la réglette */}
                     <div className="ruler border-b border-r border-border" />
                     {days.map((day, i) => (
-                        <div key={i} className={cn('border-b border-border px-1 py-2 text-center', isToday(day) && 'bg-signal/5')}>
-                            <div className={cn('font-mono text-[10px] uppercase tracking-[0.12em]', isToday(day) ? 'text-signal' : 'text-muted-foreground')}>
+                        <div key={i} className={cn('border-b border-border px-1 py-2 text-center', isToday(day) && 'shadow-[inset_2px_0_0_var(--signal)]')}>
+                            <div className={cn('text-[10px] font-medium uppercase tracking-[0.12em]', isToday(day) ? 'text-signal' : 'text-muted-foreground')}>
                                 {dayNames[i]}
                             </div>
-                            <div className={cn('mt-0.5 flex items-center justify-center gap-1 font-display text-lg font-bold leading-none', isToday(day) ? 'text-signal' : 'text-cream')}>
+                            <div className={cn('mt-0.5 flex items-center justify-center gap-1 font-mono text-lg font-bold leading-none', isToday(day) ? 'text-signal' : 'text-cream')}>
                                 {day.getDate()}
                                 {isToday(day) && <span className="h-1.5 w-1.5 rounded-full bg-vu shadow-[0_0_6px_var(--vu)]" />}
                             </div>
@@ -220,10 +236,11 @@ export default function Calendar() {
                                         key={`${dayIdx}-${hour}`}
                                         onClick={() => !past && handleCellClick(day, hour)}
                                         className={cn(
-                                            'relative min-h-[60px] border-b border-r border-border p-0.5 transition-colors last:border-r-0',
-                                            hour % 2 === 0 && 'bg-cream/[0.014]',
-                                            today && 'bg-signal/[0.035]',
-                                            past ? 'opacity-40' : 'cursor-pointer hover:bg-signal/[0.07]'
+                                            'relative min-h-[60px] border-b border-r border-border p-0.5 last:border-r-0',
+                                            past ? 'slot-blocked cursor-not-allowed' : 'slot-free cursor-pointer',
+                                            // Repère « aujourd'hui » = rail vertical ambre (pas un wash de fond
+                                            // qui écrasait le contraste du survol). Continu sur toute la colonne.
+                                            today && 'shadow-[inset_2px_0_0_var(--signal)]'
                                         )}
                                     >
                                         {playhead && (
@@ -251,13 +268,18 @@ export default function Calendar() {
                                                     onClick={(e) => handleReservationClick(e, r)}
                                                     className={cn(
                                                         'group/clip absolute inset-x-0.5 z-10 flex flex-col overflow-hidden rounded-sm border-l-[3px] px-1.5 py-1 text-left transition-all hover:z-30 hover:brightness-110 hover:ring-1 hover:ring-cream/25',
+                                                        // Révélation intentionnelle des clips quand les données arrivent
+                                                        // (sinon ils « poppent » après le slide de la grille).
+                                                        !loading && 'animate-in fade-in slide-in-from-bottom-1 duration-200',
+                                                        // Réservation passée : atténuée (régression du opacity-40 retiré de la cellule).
+                                                        past && 'opacity-45',
                                                         isShort && 'hover:h-[58px]! hover:overflow-visible hover:shadow-lg hover:shadow-black/40'
                                                     )}
                                                     style={{
                                                         top: `${parseInt(r.start_time.split(':')[1]) + 2}px`,
                                                         height: `${(r.duration / 60) * 60 - 4}px`,
                                                         borderLeftColor: color,
-                                                        backgroundColor: `color-mix(in srgb, ${color} 26%, #16130F)`,
+                                                        backgroundColor: `color-mix(in srgb, ${color} 33%, #16130F)`,
                                                         boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)',
                                                     }}
                                                 >
@@ -288,7 +310,7 @@ export default function Calendar() {
 
             {/* Légende : pistes (groupes) */}
             <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2">
-                <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-muted-foreground">Pistes</span>
+                <span className="text-[10px] font-medium uppercase tracking-[0.15em] text-muted-foreground">Pistes</span>
                 {groups.map((g) => (
                     <span key={g.id} className="flex items-center gap-2 text-xs text-cream">
                         <span className="h-2.5 w-2.5 rounded-[2px]" style={{ backgroundColor: g.color }} />

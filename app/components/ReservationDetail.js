@@ -49,7 +49,7 @@ export default function ReservationDetail({ reservation, onClose, onDeleted }) {
         <div className="flex items-start gap-3">
             <Icon className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
             <div className="min-w-0">
-                <div className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">{label}</div>
+                <div className="font-medium text-[11px] uppercase tracking-wider text-muted-foreground">{label}</div>
                 <div className="mt-0.5 font-medium text-cream">{children}</div>
             </div>
         </div>
@@ -59,7 +59,7 @@ export default function ReservationDetail({ reservation, onClose, onDeleted }) {
         <Dialog open onOpenChange={(o) => !o && onClose()}>
             <DialogContent className="border-border bg-card sm:max-w-md">
                 <DialogHeader>
-                    <DialogTitle className="font-display uppercase tracking-tight text-cream">
+                    <DialogTitle className="font-display tracking-normal text-cream">
                         Détails de la réservation
                     </DialogTitle>
                 </DialogHeader>
@@ -80,7 +80,7 @@ export default function ReservationDetail({ reservation, onClose, onDeleted }) {
 
                     <Row icon={Clock} label="Horaire">
                         {reservation.start_time.slice(0, 5)} → {getEndTime(reservation.start_time, reservation.duration)}
-                        <span className="ml-2 font-mono text-xs text-muted-foreground">
+                        <span className="ml-2 font-medium text-xs text-muted-foreground">
                             ({durationLabels[reservation.duration]})
                         </span>
                     </Row>

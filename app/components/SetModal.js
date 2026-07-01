@@ -61,13 +61,13 @@ export default function SetModal({ concertId, set, groups, currentOrder, onClose
 
     const durationOptions = [15, 20, 30, 45, 60, 90, 120];
     const selectedGroup = groups.find(g => g.id === groupId);
-    const labelClass = 'font-mono text-[11px] uppercase tracking-wider text-muted-foreground';
+    const labelClass = 'font-medium text-[11px] uppercase tracking-wider text-muted-foreground';
 
     return (
         <Dialog open onOpenChange={(o) => !o && onClose()}>
             <DialogContent className="border-border bg-card sm:max-w-md">
                 <DialogHeader>
-                    <DialogTitle className="font-display uppercase tracking-tight text-cream">
+                    <DialogTitle className="font-display tracking-normal text-cream">
                         {set ? 'Modifier le passage' : 'Ajouter un passage'}
                     </DialogTitle>
                 </DialogHeader>

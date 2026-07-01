@@ -55,13 +55,13 @@ export default function ConcertModal({ concert, onClose, onSaved, userId }) {
         }
     };
 
-    const labelClass = 'font-mono text-[11px] uppercase tracking-wider text-muted-foreground';
+    const labelClass = 'text-[11px] font-medium uppercase tracking-wider text-muted-foreground';
 
     return (
         <Dialog open onOpenChange={(o) => !o && onClose()}>
             <DialogContent className="border-border bg-card sm:max-w-md">
                 <DialogHeader>
-                    <DialogTitle className="font-display uppercase tracking-tight text-cream">
+                    <DialogTitle className="font-display tracking-normal text-cream">
                         {concert ? 'Modifier le concert' : 'Nouveau concert'}
                     </DialogTitle>
                 </DialogHeader>

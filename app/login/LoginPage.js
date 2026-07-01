@@ -66,8 +66,8 @@ export default function LoginPage() {
                             <span className="w-1 bg-signal/60" style={{ height: '65%' }} />
                         </span>
                     </span>
-                    <h1 className="font-display text-3xl font-extrabold uppercase tracking-tight text-cream">Mecazic</h1>
-                    <p className="mt-1 font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                    <h1 className="font-caps text-3xl font-extrabold uppercase tracking-normal text-cream">Mecazic</h1>
+                    <p className="mt-1 font-medium text-xs uppercase tracking-[0.18em] text-muted-foreground">
                         Salle de musique · ISAE-Supméca
                     </p>
                 </div>
@@ -77,7 +77,7 @@ export default function LoginPage() {
                     <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
                         {isRegister && (
                             <div className="flex flex-col gap-1.5">
-                                <label className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+                                <label className="font-medium text-[11px] uppercase tracking-wider text-muted-foreground">
                                     Nom / Pseudo
                                 </label>
                                 <Input
@@ -91,7 +91,7 @@ export default function LoginPage() {
                         )}
 
                         <div className="flex flex-col gap-1.5">
-                            <label className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+                            <label className="font-medium text-[11px] uppercase tracking-wider text-muted-foreground">
                                 Email
                             </label>
                             <Input
@@ -104,7 +104,7 @@ export default function LoginPage() {
                         </div>
 
                         <div className="flex flex-col gap-1.5">
-                            <label className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+                            <label className="font-medium text-[11px] uppercase tracking-wider text-muted-foreground">
                                 Mot de passe
                             </label>
                             <Input
@@ -142,7 +142,7 @@ export default function LoginPage() {
                         </Button>
                     </form>
 
-                    <div className="mt-6 text-center font-mono text-xs text-muted-foreground">
+                    <div className="mt-6 text-center font-medium text-xs text-muted-foreground">
                         {isRegister ? 'Déjà un compte ?' : 'Pas encore de compte ?'}
                         <button
                             type="button"

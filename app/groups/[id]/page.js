@@ -12,12 +12,14 @@ import SongDetailsModal from '@/app/components/SongDetailsModal';
 import { cn } from '@/lib/utils';
 import {
     Music, Users, CalendarDays, Pencil, Plus, ArrowLeft, Loader2,
-    Play, Guitar, FileText, AlertTriangle,
+    Play, Guitar, FileText, AlertTriangle, Trash2,
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
 import { Input } from '@/app/components/ui/input';
 import { Button } from '@/app/components/ui/button';
 import { ImageUpload } from '@/app/components/ui/image-upload';
+import { usePlayer } from '@/app/contexts/PlayerContext';
+import { youtubeId } from '@/lib/youtube';
 
 const GROUP_COLORS = [
     { color: '#8B5CF6', label: 'Violet' },
@@ -34,6 +36,7 @@ export default function GroupPage() {
     const { id } = useParams();
     const router = useRouter();
     const { user, profile, loading: authLoading, fetchProfile, fetchGroups } = useAuth();
+    const { play } = usePlayer();
 
     const [group, setGroup] = useState(null);
     const [members, setMembers] = useState([]);
@@ -87,7 +90,7 @@ export default function GroupPage() {
         return (
             <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-console">
                 <Loader2 className="h-8 w-8 animate-spin text-signal" />
-                <p className="font-mono text-sm text-muted-foreground">Chargement…</p>
+                <p className="text-sm text-muted-foreground">Chargement…</p>
             </div>
         );
     }
@@ -169,6 +172,21 @@ export default function GroupPage() {
         }
     };
 
+    const handleDeleteSong = async (song) => {
+        if (!confirm(`Supprimer « ${song.title} » du répertoire ?`)) return;
+        try {
+            const { error } = await supabase.from('group_repertoire').delete().eq('id', song.id);
+            if (error) {
+                alert('Erreur lors de la suppression : ' + error.message);
+                return;
+            }
+            fetchAll();
+        } catch (err) {
+            console.error('Exception handleDeleteSong:', err);
+            alert('Erreur inattendue lors de la suppression.');
+        }
+    };
+
     const getEndTime = (startTime, duration) => {
         const [h, m] = startTime.split(':').map(Number);
         const total = h * 60 + m + duration;
@@ -184,7 +202,7 @@ export default function GroupPage() {
     const dayNames = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
     const monthNames = ['JAN', 'FÉV', 'MAR', 'AVR', 'MAI', 'JUIN', 'JUIL', 'AOÛT', 'SEP', 'OCT', 'NOV', 'DÉC'];
 
-    const labelClass = 'font-mono text-[11px] uppercase tracking-wider text-muted-foreground';
+    const labelClass = 'text-[11px] font-medium uppercase tracking-wider text-muted-foreground';
 
     return (
         <AppShell>
@@ -229,7 +247,7 @@ export default function GroupPage() {
                             </div>
                             <div className="min-w-[240px] flex-1">
                                 <div className="flex flex-wrap items-center gap-3">
-                                    <h1 className="font-display text-3xl font-extrabold uppercase tracking-tight text-cream">{group.name}</h1>
+                                    <h1 className="font-caps text-3xl font-extrabold uppercase tracking-normal text-cream">{group.name}</h1>
                                     {group.description && (
                                         <span
                                             className="rounded-full px-3 py-0.5 text-xs font-semibold text-white"
@@ -239,7 +257,7 @@ export default function GroupPage() {
                                         </span>
                                     )}
                                 </div>
-                                <div className="mt-1 flex flex-wrap items-center gap-2 font-mono text-xs text-muted-foreground">
+                                <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                                     <span>{members.length} membre{members.length > 1 ? 's' : ''}</span>
                                     <span>·</span>
                                     <span>{repertoire.length} morceau{repertoire.length > 1 ? 'x' : ''}</span>
@@ -291,7 +309,7 @@ export default function GroupPage() {
                             {/* Prochaines réservations */}
                             <div className="glass rounded-xl p-5">
                                 <div className="mb-4 flex items-center justify-between">
-                                    <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-tight text-cream">
+                                    <h2 className="flex items-center gap-2 font-display text-base font-bold tracking-normal text-cream">
                                         <CalendarDays className="h-4 w-4 text-signal" />
                                         Prochaines réservations
                                     </h2>
@@ -306,8 +324,8 @@ export default function GroupPage() {
                                                         className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-md border bg-card"
                                                         style={{ borderColor: group.color + '50' }}
                                                     >
-                                                        <span className="font-display text-lg font-bold leading-none text-cream">{d.getDate()}</span>
-                                                        <span className="font-mono text-[9px] font-semibold tracking-wider text-muted-foreground">{monthNames[d.getMonth()]}</span>
+                                                        <span className="font-mono text-lg font-bold leading-none text-cream">{d.getDate()}</span>
+                                                        <span className="text-[9px] font-semibold tracking-wider text-muted-foreground">{monthNames[d.getMonth()]}</span>
                                                     </span>
                                                     <span className="flex min-w-0 flex-col">
                                                         <span className="font-semibold text-cream">{r.title || 'Répétition'}</span>
@@ -327,7 +345,7 @@ export default function GroupPage() {
                             {/* Répertoire */}
                             <div className="glass rounded-xl p-5">
                                 <div className="mb-4 flex items-center justify-between">
-                                    <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-tight text-cream">
+                                    <h2 className="flex items-center gap-2 font-display text-base font-bold tracking-normal text-cream">
                                         <Guitar className="h-4 w-4 text-signal" />
                                         Répertoire
                                         <span className="rounded-full border border-border bg-panel px-2 py-0.5 text-[11px] font-bold text-muted-foreground">
@@ -345,10 +363,10 @@ export default function GroupPage() {
                                     <table className="w-full border-collapse">
                                         <thead>
                                             <tr className="border-b border-border">
-                                                <th className="px-3 py-2 text-left font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Titre</th>
-                                                <th className="px-3 py-2 text-left font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Artiste</th>
-                                                <th className="px-3 py-2 text-left font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Durée</th>
-                                                <th className="px-3 py-2 text-left font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Liens</th>
+                                                <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Titre</th>
+                                                <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Artiste</th>
+                                                <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Durée</th>
+                                                <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Liens</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -363,17 +381,34 @@ export default function GroupPage() {
                                                     <td className="px-3 py-2.5 font-mono text-sm text-muted-foreground">{formatDuration(song.duration_seconds)}</td>
                                                     <td className="px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
                                                         <div className="flex items-center gap-2.5">
-                                                            <a
-                                                                href={song.youtube_url || `https://www.youtube.com/results?search_query=${encodeURIComponent(`${song.artist} ${song.title}`)}`}
-                                                                target="_blank" rel="noopener noreferrer" title="YouTube"
-                                                                className="text-muted-foreground transition-colors hover:text-vu"
-                                                            ><Play className="h-4 w-4" /></a>
+                                                            {youtubeId(song.youtube_url) ? (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={(e) => { e.stopPropagation(); play({ videoId: youtubeId(song.youtube_url), title: song.title, artist: song.artist }); }}
+                                                                    title="Jouer dans l'app"
+                                                                    className="text-muted-foreground transition-colors hover:text-signal"
+                                                                ><Play className="h-4 w-4" /></button>
+                                                            ) : (
+                                                                <a
+                                                                    href={`https://www.youtube.com/results?search_query=${encodeURIComponent(`${song.artist} ${song.title}`)}`}
+                                                                    target="_blank" rel="noopener noreferrer" title="Chercher sur YouTube"
+                                                                    className="text-muted-foreground transition-colors hover:text-vu"
+                                                                ><Play className="h-4 w-4" /></a>
+                                                            )}
                                                             <a
                                                                 href={`https://www.songsterr.com/a/wa/bestMatchForQueryString?s=${encodeURIComponent(song.title)}&a=${encodeURIComponent(song.artist)}`}
                                                                 target="_blank" rel="noopener noreferrer" title="Tablatures Songsterr"
                                                                 className="text-muted-foreground transition-colors hover:text-signal"
                                                             ><Guitar className="h-4 w-4" /></a>
                                                             {song.lyrics && <FileText className="h-4 w-4 text-muted-foreground/60" title="Paroles disponibles" />}
+                                                            {canEdit && (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={(e) => { e.stopPropagation(); handleDeleteSong(song); }}
+                                                                    title="Supprimer du répertoire"
+                                                                    className="text-muted-foreground transition-colors hover:text-vu"
+                                                                ><Trash2 className="h-4 w-4" /></button>
+                                                            )}
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -392,7 +427,7 @@ export default function GroupPage() {
                             {/* Membres */}
                             <div className="glass rounded-xl p-5">
                                 <div className="mb-4 flex items-center justify-between">
-                                    <h2 className="flex items-center gap-2 font-display text-base font-bold uppercase tracking-tight text-cream">
+                                    <h2 className="flex items-center gap-2 font-display text-base font-bold tracking-normal text-cream">
                                         <Users className="h-4 w-4 text-signal" />
                                         Membres
                                         <span className="rounded-full border border-border bg-panel px-2 py-0.5 text-[11px] font-bold text-muted-foreground">
@@ -407,7 +442,7 @@ export default function GroupPage() {
                                                 <Avatar name={m.username} size={34} />
                                                 <span className="font-medium text-cream">{m.username}</span>
                                                 {m.role === 'admin' && (
-                                                    <span className="ml-auto rounded-full bg-signal/15 px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-signal">
+                                                    <span className="ml-auto rounded-full bg-signal/15 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-signal">
                                                         admin
                                                     </span>
                                                 )}
@@ -426,7 +461,7 @@ export default function GroupPage() {
                         <Dialog open onOpenChange={(o) => !o && setShowEdit(false)}>
                             <DialogContent className="sm:max-w-md">
                                 <DialogHeader>
-                                    <DialogTitle className="font-display uppercase tracking-tight text-cream">
+                                    <DialogTitle className="font-display tracking-normal text-cream">
                                         Modifier le groupe
                                     </DialogTitle>
                                 </DialogHeader>
@@ -495,6 +530,7 @@ export default function GroupPage() {
                     {selectedSong && (
                         <SongDetailsModal
                             song={selectedSong}
+                            canEdit={canEdit}
                             onClose={() => setSelectedSong(null)}
                             onUpdated={() => fetchAll()}
                         />

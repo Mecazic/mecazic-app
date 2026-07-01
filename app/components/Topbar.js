@@ -101,7 +101,7 @@ export default function Topbar() {
 
                         {results?.groups.length > 0 && (
                             <div className="border-b border-border py-2 last:border-b-0">
-                                <div className="px-3 py-1 font-mono text-[10px] uppercase tracking-[0.15em] text-muted-foreground">Groupes</div>
+                                <div className="px-3 py-1 text-[10px] font-medium uppercase tracking-[0.15em] text-muted-foreground">Groupes</div>
                                 {results.groups.map((g) => (
                                     <button key={g.id} type="button" onMouseDown={() => go(`/groups/${g.id}`)} className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-accent">
                                         <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: g.color }} />
@@ -114,7 +114,7 @@ export default function Topbar() {
 
                         {results?.concerts.length > 0 && (
                             <div className="border-b border-border py-2 last:border-b-0">
-                                <div className="px-3 py-1 font-mono text-[10px] uppercase tracking-[0.15em] text-muted-foreground">Concerts</div>
+                                <div className="px-3 py-1 text-[10px] font-medium uppercase tracking-[0.15em] text-muted-foreground">Concerts</div>
                                 {results.concerts.map((c) => (
                                     <button key={c.id} type="button" onMouseDown={() => go('/concerts')} className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-accent">
                                         <Mic2 className="h-4 w-4 shrink-0 text-muted-foreground" />
@@ -127,7 +127,7 @@ export default function Topbar() {
 
                         {results?.songs.length > 0 && (
                             <div className="border-b border-border py-2 last:border-b-0">
-                                <div className="px-3 py-1 font-mono text-[10px] uppercase tracking-[0.15em] text-muted-foreground">Morceaux</div>
+                                <div className="px-3 py-1 text-[10px] font-medium uppercase tracking-[0.15em] text-muted-foreground">Morceaux</div>
                                 {results.songs.map((s) => (
                                     <button key={s.id} type="button" onMouseDown={() => go(`/groups/${s.group_id}`)} className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-accent">
                                         <Music className="h-4 w-4 shrink-0 text-muted-foreground" />

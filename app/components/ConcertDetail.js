@@ -164,7 +164,7 @@ export default function ConcertDetail({ concert, onBack, onRefresh, groups, user
                     <ArrowLeft className="h-4 w-4" />
                     Retour
                 </button>
-                <h1 className="font-display text-3xl font-extrabold uppercase tracking-tight text-cream">
+                <h1 className="font-caps text-3xl font-extrabold uppercase tracking-normal text-cream">
                     {concert.name}
                 </h1>
                 <div className="mt-2 flex flex-wrap gap-4 text-sm text-muted-foreground">
@@ -185,20 +185,20 @@ export default function ConcertDetail({ concert, onBack, onRefresh, groups, user
             {/* Barre de stats */}
             <div className="glass mb-5 flex gap-8 rounded-xl px-6 py-4">
                 <div className="flex flex-col items-center">
-                    <span className="font-display text-2xl font-extrabold text-signal">{sets.length}</span>
-                    <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                    <span className="font-mono text-2xl font-extrabold text-signal">{sets.length}</span>
+                    <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
                         Passage{sets.length !== 1 ? 's' : ''}
                     </span>
                 </div>
                 <div className="flex flex-col items-center">
-                    <span className="font-display text-2xl font-extrabold text-signal">{totalSongs}</span>
-                    <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                    <span className="font-mono text-2xl font-extrabold text-signal">{totalSongs}</span>
+                    <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
                         Chanson{totalSongs !== 1 ? 's' : ''}
                     </span>
                 </div>
                 <div className="flex flex-col items-center">
-                    <span className="font-display text-2xl font-extrabold text-signal">{totalDuration}</span>
-                    <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                    <span className="font-mono text-2xl font-extrabold text-signal">{totalDuration}</span>
+                    <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
                         min totales
                     </span>
                 </div>
@@ -225,7 +225,7 @@ export default function ConcertDetail({ concert, onBack, onRefresh, groups, user
                             );
                         })}
                     </div>
-                    <div className="mt-1.5 flex flex-wrap justify-around gap-x-3 font-mono text-[11px] font-semibold">
+                    <div className="mt-1.5 flex flex-wrap justify-around gap-x-3 text-[11px] font-semibold">
                         {sets.map(set => (
                             <span key={set.id} style={{ color: set.groups?.color || '#666' }}>
                                 {set.groups?.name}
@@ -243,7 +243,7 @@ export default function ConcertDetail({ concert, onBack, onRefresh, groups, user
             ) : (
                 <div className="glass rounded-xl p-6">
                     <div className="mb-6 flex items-center justify-between">
-                        <h2 className="font-display text-lg font-bold uppercase tracking-tight text-cream">Programme</h2>
+                        <h2 className="font-display text-lg font-bold tracking-normal text-cream">Programme</h2>
                         <Button
                             size="sm"
                             onClick={() => { setEditSet(null); setShowSetModal(true); }}
@@ -374,7 +374,7 @@ export default function ConcertDetail({ concert, onBack, onRefresh, groups, user
                                             {isExpanded && (
                                                 <div className="mt-2 overflow-hidden rounded-md border border-border bg-card animate-in fade-in slide-in-from-top-1 duration-200">
                                                     <div className="flex items-center justify-between border-b border-border px-4 py-3">
-                                                        <h4 className="font-display text-sm font-semibold uppercase tracking-tight text-cream">
+                                                        <h4 className="font-display text-sm font-semibold tracking-normal text-cream">
                                                             Setlist
                                                         </h4>
                                                         <Button

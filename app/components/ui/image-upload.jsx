@@ -51,7 +51,7 @@ export function ImageUpload({ groupId, kind = 'avatar', value, onChange, label }
     return (
         <div className="flex flex-col gap-1.5">
             {label && (
-                <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">{label}</span>
+                <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{label}</span>
             )}
             <div className="flex items-center gap-3">
                 <button
@@ -67,7 +67,7 @@ export function ImageUpload({ groupId, kind = 'avatar', value, onChange, label }
                     ) : (
                         <span className="flex h-full w-full flex-col items-center justify-center gap-1 text-muted-foreground">
                             <ImageIcon className="h-5 w-5" />
-                            <span className="font-mono text-[10px] uppercase tracking-wider">Ajouter</span>
+                            <span className="text-[10px] font-medium uppercase tracking-wider">Ajouter</span>
                         </span>
                     )}
                     <span className="absolute inset-0 flex items-center justify-center bg-console/60 opacity-0 backdrop-blur-sm transition-opacity group-hover/up:opacity-100">
@@ -83,7 +83,7 @@ export function ImageUpload({ groupId, kind = 'avatar', value, onChange, label }
                     <button
                         type="button"
                         onClick={() => onChange('')}
-                        className="flex items-center gap-1.5 rounded-md px-2 py-1 font-mono text-[11px] uppercase tracking-wider text-muted-foreground transition-colors hover:text-vu"
+                        className="flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground transition-colors hover:text-vu"
                     >
                         <X className="h-3.5 w-3.5" />
                         Retirer
@@ -94,7 +94,7 @@ export function ImageUpload({ groupId, kind = 'avatar', value, onChange, label }
                 <button
                     type="button"
                     onClick={() => onChange('')}
-                    className="self-start font-mono text-[11px] uppercase tracking-wider text-muted-foreground transition-colors hover:text-vu"
+                    className="self-start text-[11px] font-medium uppercase tracking-wider text-muted-foreground transition-colors hover:text-vu"
                 >
                     Retirer la bannière
                 </button>
